@@ -2,10 +2,10 @@
 """Preliminary exercises for Part IIA Project GF2."""
 import sys
 import os
+from mynames import MyNames
 # Insert main project directory so that we can resolve the src imports
 src_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, src_path)
-from mynames import MyNames
 
 def open_file(path):
     """Open and return the file specified by path."""
@@ -19,9 +19,11 @@ def open_file(path):
 def get_next_character(input_file):
     """Read and return the next character in input_file."""
     char = input_file.read(1)
+
     # Enable if you want to get rid of linespaces
-    # if char == "\n":
-    #    char = input_file.read(1)
+    if char == "\n":
+        char = input_file.read(1)
+
     return char
 
 
@@ -35,6 +37,7 @@ def get_next_non_whitespace_character(input_file):
 
 def get_next_number(input_file):
     """Seek the next number in input_file.
+
     Return the number (or None) and the next non-numeric character.
     """
     ch = get_next_character(input_file)
@@ -76,7 +79,6 @@ def get_next_name(input_file):
 
 def main():
     """Preliminary exercises for Part IIA Project GF2."""
-
     # Check command line arguments
     arguments = sys.argv[1:]
     if len(arguments) != 1:
@@ -125,12 +127,12 @@ def main():
         print("\nNow censoring bad names...")
         # Print out only the good names in the file
         name_table = MyNames()
-        bad_name_ids = [
-            name_table.lookup("Terrible"),
-            name_table.lookup("Horrid"),
-            name_table.lookup("Ghastly"),
-            name_table.lookup("Awful")
-        ]
+
+        bad_name_ids = [name_table.lookup("Terrible"),
+                        name_table.lookup("Horrid"),
+                        name_table.lookup("Ghastly"),
+                        name_table.lookup("Awful")]
+
         while True:
             name, next_ch = get_next_name(file)
             if name is not None:
