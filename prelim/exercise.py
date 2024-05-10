@@ -23,8 +23,8 @@ def get_next_character(input_file):
     char = input_file.read(1)
 
     # Enable if you want to get rid of linespaces
-    # if char == "\n":
-    #    char = input_file.read(1)
+    if char == "\n":
+        char = input_file.read(1)
     return char
 
 
