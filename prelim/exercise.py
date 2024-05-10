@@ -7,7 +7,6 @@ src_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, src_path)
 from mynames import MyNames
 
-
 def open_file(path):
     """Open and return the file specified by path."""
     try:
