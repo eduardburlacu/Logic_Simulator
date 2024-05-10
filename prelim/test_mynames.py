@@ -47,3 +47,14 @@ def test_get_string(used_names, new_names, name_id, expected_string):
     assert used_names.get_string(name_id) == expected_string
     # Name is absent
     assert new_names.get_string(name_id) is None
+
+@pytest.mark.parametrize("query_name, expected_id",[
+    ("Alice",0),
+    ("Bob",  1),
+    ("Eve",  2),
+])
+def test_lookup(used_names, new_names, query_name, expected_id):
+    #Name is present
+    assert used_names.lookup(query_name) == expected_id
+    #Name is absent
+    assert new_names.lookup(query_name) == 0
