@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Preliminary exercises for Part IIA Project GF2."""
 import sys
-
+import os
+#-------Insert main project directory so that we can resolve the src imports-------
+src_path = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, src_path)
+from mynames import MyNames
 
 def open_file(path):
     """Open and return the file specified by path."""
@@ -113,11 +117,19 @@ def main():
             if next_ch == "":
                 break
 
+        file.seek(0)
         print("\nNow censoring bad names...")
         # Print out only the good names in the file
-        # name = MyNames()
-        # bad_name_ids = [name.lookup("Terrible"), name.lookup("Horrid"),
-        #                 name.lookup("Ghastly"), name.lookup("Awful")]
+        name_table = MyNames()
+        bad_name_ids = [name_table.lookup("Terrible"), name_table.lookup("Horrid"),
+                         name_table.lookup("Ghastly"), name_table.lookup("Awful")]
+        while True:
+            name, next_ch = get_next_name(file)
+            if name is not None:
+                if name_table.lookup(name) not in bad_name_ids: print(name, end=" ")
+            if next_ch == "":
+                break
+
 
 if __name__ == "__main__":
     main()
