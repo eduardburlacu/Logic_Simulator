@@ -7,7 +7,6 @@ MyNames - implements a name table for lexical analysis.
 
 
 class MyNames:
-
     """Implements a name table for lexical analysis.
 
     Parameters
@@ -53,9 +52,8 @@ class MyNames:
             return None
 
 
-
-if __name__=="__main__":
+if __name__ == "__main__":
     obj = MyNames()
-    obj.names=["A","B","C"]
+    obj.names = ["A", "B", "C"]
     print(obj.get_string(4))
     print(obj.lookup("d"))
