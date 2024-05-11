@@ -1,0 +1,16 @@
+network = devices, connections, [monitors];
+
+devices = "DEVICES", ":" , device_def , { device_def }, ";" ;
+device_def = device_name, {",", "device_name"}, "=", device_type, ";" ;
+device_name = alpha, {alphanum} ;
+device type = ("AND", parameter) | ("OR", parameter) | ("NAND", parameter) | ("XOR", parameter) | ("SWITCH", parameter) ;
+alpha = "a" | "b"  | "c" ;
+number= "0" | "1"  | "2" ;
+param = ;
+
+connections = "CONNECTIONS", connection_def, {connection_def}, ";" ;
+connection_def = (out_port, ">", in_port), ";" ;
+in_port = (device_name,".I",number)|(device_name, ",", ( "DATA" | "CLK" | "SET" | "CLEAR" )) ;
+out_port = (device_name,".O",number)| (device_name, ",", ( "Q","_Q" )) ;
+
+monitor_statement =
