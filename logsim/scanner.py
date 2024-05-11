@@ -9,7 +9,7 @@ Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
 
-SYMBOL_TYPES = ["NAME","DIGIT","PUNCTUATION",""]
+SYMBOL_TYPES = ["NAME","DIGIT","PUNCTUATION","END"]
 NAMES_SYMBOLS = ["DEVICES","CONNECTIONS","MONITOR"]
 PUNCTUATION_SYMBOLS = [">",".",",",'"',";","="]
 END_SYMBOL = ""

@@ -1,11 +1,11 @@
 DEVICES:
-    A = OR<2> ;
-    B = NOR<3> ;
-    C = AND<2> ;
+    A = OR[2] ;
+    B = NOR[3] ;
+    C = AND[2] ;
     flipflop = DTYPE ;
-    clock_ = CLOCK<05> ;
-    input1, input2, set_swi, reset_swi = SWITCH<0> ;
-	input3 = SWITCH<1> ;
+    clock = CLOCK[05] ;
+    input1, input2, set_swi, reset_swi = SWITCH[0] ;
+	input3 = SWITCH[1] ;
 
 
 CONNECTIONS:
@@ -18,9 +18,11 @@ CONNECTIONS:
 	A > C.I1 ;
 	B > C.I3 ;
 	C > flopflip.DATA ;
-	clock_ > flopflip.CLK ;
+	clock > flopflip.CLK ;
 	set_swi > flopflip.SET ;
 	reset_swi > flopflip.CLEAR ;
 
 MONITORS:
-	A, clock, flopflip.Q, flopflip.QBAR ;
+	A, flopflip.Q, flopflip.QBAR ;
+
+END

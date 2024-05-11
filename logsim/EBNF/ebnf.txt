@@ -1,16 +1,40 @@
-network = devices, connections, [monitors];
+network = devices, connections, [monitors], "END" ;
 
-devices = "DEVICES", ":" , device_def , { device_def }, ";" ;
-device_def = device_name, {",", "device_name"}, "=", device_type, ";" ;
-device_name = alpha, {alphanum} ;
-device type = ("AND", parameter) | ("OR", parameter) | ("NAND", parameter) | ("XOR", parameter) | ("SWITCH", parameter) ;
-alpha = "a" | "b"  | "c" ;
-number= "0" | "1"  | "2" ;
-param = ;
+devices = "DEVICES", ":" , device_def , { device_def } ;
+
+device_def = device_name, {",", device_name}, "=", device_type, ";" ;
+
+device_name = (alpha | "_"), {alpha | digit | "_" } ;
+
+device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
+              ("NAND", parameter) | ("OR", parameter) | ("NOR", parameter) |
+              ("XOR", parameter) | ("XOR", parameter) ;
+
+parameter = "[", digit, {digit}, "]";
+
 
 connections = "CONNECTIONS", connection_def, {connection_def}, ";" ;
-connection_def = (out_port, ">", in_port), ";" ;
-in_port = (device_name,".I",number)|(device_name, ",", ( "DATA" | "CLK" | "SET" | "CLEAR" )) ;
-out_port = (device_name,".O",number)| (device_name, ",", ( "Q","_Q" )) ;
 
-monitor_statement =
+connection_def = (out_port, ">", in_port), ";" ;
+
+
+in_port = (device_name,".I", digit, {digit} ) | (device_name, ".", ( "DATA" | "CLK" | "SET" | "CLEAR" ) ) ;
+
+out_port = (device_name, digit) | (device_name, ",", ( "Q","QBAR" )) ;
+
+
+monitors = "MONITOR", ":", monitor_def ;
+
+monitor_def output_port, {output_port} ;
+
+
+alpha =  "A" | "B" | "C" | "D" | "E" | "F" | "G"
+       | "H" | "I" | "J" | "K" | "L" | "M" | "N"
+       | "O" | "P" | "Q" | "R" | "S" | "T" | "U"
+       | "V" | "W" | "X" | "Y" | "Z" | "a" | "b"
+       | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+       | "j" | "k" | "l" | "m" | "n" | "o" | "p"
+       | "q" | "r" | "s" | "t" | "u" | "v" | "w"
+       | "x" | "y" | "z" ;
+
+digit= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
