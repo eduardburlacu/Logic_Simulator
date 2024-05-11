@@ -1,0 +1,3 @@
+# Logic Simulator
+
+Coursework project
