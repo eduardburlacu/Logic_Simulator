@@ -78,6 +78,8 @@ class Scanner:
             , "x", "y", "z"]
 
         self.end = ""
+        self.current_line: int = 1
+        self.current_line_position: int = 0
 
         # Open the file
         self.input_file = open( path, "r" )
@@ -97,40 +99,22 @@ class Scanner:
             if ch != " " or ch == "":
                 return ch
 
-    def skip_comment(self):
-        pass
 
     def get_number(self):
-        ch = self.get_next_character()
         number = ""
-        while ch != "":
-            while ch.isdigit():
-                number = number + ch
-                ch = self.get_next_character()
-            if number != "":
-                break
-            else:
-                ch = self.get_next_character()
-        return [number, ch]
+        while self.current_character.isdigit():
+            number = number + self.current_character
+            self.current_character = self.get_next_character()
+        return number
 
     def get_name(self):
-        ch = self.get_next_character()
-        while not ch.isalpha():
-            ch = self.get_next_character()
-            if ch == "":
-                return [None, ch]
+        assert (len(self.current_character)==1 and isinstance(self.current_character, str))
         name = ""
-        while ch != "":
-            while ch.isalnum():
-                name = name + ch
-                ch = self.get_next_character()
-            if name != "":
-                break
-            else:
-                ch = self.get_next_character()
-        if name == "":
-            name = None
-        return [ name, ch]
+        while self.current_character.isalnum():
+            name = name + self.current_character
+            self.current_character = self.get_next_character()
+        return name
+
 
     def advance(self):
         pass
@@ -140,7 +124,19 @@ class Scanner:
 
         symbol = Symbol()
         self.skip_spaces()  # current character now not whitespace
+        # First check the location-modifying symbols
+        if self.current_character == "#":
+            # This is a 1-row comment. Ignore this line.
+            while self.current_character != "\n" and self.current_character != "":
+                self.current_character = self.get_next_character()
 
+        elif self.current_character == ";":
+            # This is the marker for end of line
+            symbol.type = self.SEMICOL
+            self.current_line += 1
+            self.current_character = self.get_next_character()
+
+        # Now check the symbol coming after
         if self.current_character.isalpha():  # name
             name_string = self.get_name()
             if name_string in self.keywords:
@@ -149,15 +145,11 @@ class Scanner:
                 symbol.type = self.NAME
                 [symbol.id] = self.names.lookup( [name_string] )
 
-        elif self.current_character == "#":
-            #This is a comment. Ignore this line
-            self.skip_comment()
-
         elif self.current_character.isdigit():  # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
 
-        elif self.current_character == "=":  # punctuation
+        elif self.current_character == "=":
             symbol.type = self.EQUAL
             self.advance()
 
@@ -170,11 +162,6 @@ class Scanner:
             # etc for other punctuation
             symbol.type = self.GREATER
             self.advance()
-
-        elif self.current_character == ";":
-            # etc for other punctuation
-            symbol.type = self.SEMICOL
-
 
         elif self.current_character == ".":
             symbol.type = self.DOT
