@@ -21,13 +21,18 @@ class Symbol:
     --------------
     No public methods.
     """
-    def __init__(self):
+    def __init__(
+            self,
+            type:str=None,
+            id:int=None,
+            line:int=None,
+            line_position:int=None
+    ):
         """Initialise symbol properties."""
-        self.type = None
-        self.id = None
-        self.line = None
-        self.line_position = None
-
+        self.type = type
+        self.id   = id
+        self.line = line
+        self.line_position = line_position
 
 
 class Scanner:
@@ -56,7 +61,11 @@ class Scanner:
 
         self.names = names
 
-        self.keywords = [ "DEVICES", "CONNECTIONS", "MONITOR" ]
+        self.keywords:set = { "DEVICES", "CONNECTIONS", "MONITOR",
+                              "CLOCK", "SWITCH", "AND", "NAND","OR",
+                              "NOR", "XOR","DATA", "CLK", "SET",
+                              "CLEAR", "Q", "QBAR"
+                              }
 
         self.digits = [ str(i) for i in range(10) ]
 
@@ -81,16 +90,17 @@ class Scanner:
         self.current_line: int = 1
         self.current_line_position: int = 0
 
+        self.symbols:list = []
         # Open the file
-        self.input_file = open( path, "r" )
+        self.file = open(path, "r")
 
     def get_next_character(self):
         """Read and return the next character in input_file."""
-        char = self.input_file.read(1)
+        char = self.file.read(1)
 
         # Enable if you want to get rid of linespaces
         if char == "\n":
-            char = self.input_file.read(1)
+            char = self.file.read(1)
         return char
 
     def skip_spaces(self):
@@ -98,7 +108,6 @@ class Scanner:
             ch = self.get_next_character()
             if ch != " " or ch == "":
                 return ch
-
 
     def get_number(self):
         number = ""
@@ -115,9 +124,14 @@ class Scanner:
             self.current_character = self.get_next_character()
         return name
 
-
     def advance(self):
         pass
+
+    def create_symbol(self, string, column_pos, line_pos):
+        symbol_id = self.names.lookup([string])[0]  # Lookup requires a list
+        symbol = Symbol(string, symbol_id, line_pos, column_pos)
+        return symbol
+
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
@@ -125,9 +139,12 @@ class Scanner:
         symbol = Symbol()
         self.skip_spaces()  # current character now not whitespace
         # First check the location-modifying symbols
+
         if self.current_character == "#":
             # This is a 1-row comment. Ignore this line.
             while self.current_character != "\n" and self.current_character != "":
+                self.current_character = self.get_next_character()
+            if self.current_character == "\n":
                 self.current_character = self.get_next_character()
 
         elif self.current_character == ";":
@@ -135,6 +152,7 @@ class Scanner:
             symbol.type = self.SEMICOL
             self.current_line += 1
             self.current_character = self.get_next_character()
+
 
         # Now check the symbol coming after
         if self.current_character.isalpha():  # name
@@ -180,6 +198,14 @@ class Scanner:
 
         return symbol
 
+    def get_all_symbols(self, cache=False):
+        self.file.seek(0)
+        symbols = [self.get_symbol()]
+        while symbols[-1].type != self.EOF:
+            symbols.append(self.get_symbol())
+        if cache:
+            self.symbols = symbols
+        return symbols
 
     def print_line_error(self):
         pass
