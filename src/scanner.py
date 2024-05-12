@@ -88,6 +88,7 @@ class Scanner:
 
         self.end = ""
         self.current_line: int = 1
+        self.checkpoint: int = 0 # start of the current line location (to seek to that position)
         self.current_line_position: int = 0
 
         self.symbols:list = []
@@ -97,10 +98,10 @@ class Scanner:
     def get_next_character(self):
         """Read and return the next character in input_file."""
         char = self.file.read(1)
-
-        # Enable if you want to get rid of linespaces
+        self.current_line_position += 1
         if char == "\n":
-            char = self.file.read(1)
+            char = self.file.read(1) # Enable if you want to get rid of linespaces
+            self.current_line += 1
         return char
 
     def skip_spaces(self):
@@ -150,9 +151,7 @@ class Scanner:
         elif self.current_character == ";":
             # This is the marker for end of line
             symbol.type = self.SEMICOL
-            self.current_line += 1
-            self.current_character = self.get_next_character()
-
+            self.checkpoint = 1 + self.file.tell()
 
         # Now check the symbol coming after
         if self.current_character.isalpha():  # name
@@ -208,4 +207,9 @@ class Scanner:
         return symbols
 
     def print_line_error(self):
-        pass
+        #line starts at self.checkpoint and error occurs at self.current_line_position-selfcheckpoint spaces away
+        temp = self.file.tell()
+        self.file.seek(self.checkpoint)
+        print(self.file.readline())
+        print(" " * (self.current_line_position-self.checkpoint) + "^")
+        self.file.seek(temp) #Go back to the error location
