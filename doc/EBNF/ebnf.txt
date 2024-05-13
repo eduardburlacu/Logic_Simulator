@@ -8,9 +8,9 @@ device_name = (alpha | "_"), {alpha | digit | "_" } ;
 
 device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
               ("NAND", parameter) | ("OR", parameter) | ("NOR", parameter) |
-              ("XOR", parameter) | "DTYPE" ;
+              ("XOR", parameter) | ("XOR", parameter) ;
 
-parameter = "[", digit, {digit}, "]";
+parameter = "[", digit, {digit}, "]" ;
 
 
 connections = "CONNECTIONS", connection_def, {connection_def}, ";" ;
@@ -25,7 +25,7 @@ out_port = (device_name, digit) | (device_name, ",", ( "Q","QBAR" )) ;
 
 monitors = "MONITOR", ":", monitor_def ;
 
-monitor_def output_port, {output_port} ;
+monitor_def = output_port, {output_port} ;
 
 
 alpha =  "A" | "B" | "C" | "D" | "E" | "F" | "G"
