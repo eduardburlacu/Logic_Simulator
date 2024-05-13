@@ -21,13 +21,18 @@ class Symbol:
     --------------
     No public methods.
     """
-    def __init__(self):
+    def __init__(
+            self,
+            type:str=None,
+            id:int=None,
+            line:int=None,
+            line_position:int=None
+    ):
         """Initialise symbol properties."""
-        self.type = None
-        self.id = None
-        self.line = None
-        self.line_position = None
-
+        self.type = type
+        self.id   = id
+        self.line = line
+        self.line_position = line_position
 
 
 class Scanner:
@@ -56,7 +61,11 @@ class Scanner:
 
         self.names = names
 
-        self.keywords = [ "DEVICES", "CONNECTIONS", "MONITOR" ]
+        self.keywords:set = { "DEVICES", "CONNECTIONS", "MONITOR",
+                              "CLOCK", "SWITCH", "AND", "NAND","OR",
+                              "NOR", "XOR","DATA", "CLK", "SET",
+                              "CLEAR", "Q", "QBAR"
+                              }
 
         self.digits = [ str(i) for i in range(10) ]
 
@@ -78,17 +87,21 @@ class Scanner:
             , "x", "y", "z"]
 
         self.end = ""
+        self.current_line: int = 1
+        self.checkpoint: int = 0 # start of the current line location (to seek to that position)
+        self.current_line_position: int = 0
 
+        self.symbols:list = []
         # Open the file
-        self.input_file = open( path, "r" )
+        self.file = open(path, "r")
 
     def get_next_character(self):
         """Read and return the next character in input_file."""
-        char = self.input_file.read(1)
-
-        # Enable if you want to get rid of linespaces
+        char = self.file.read(1)
+        self.current_line_position += 1
         if char == "\n":
-            char = self.input_file.read(1)
+            char = self.file.read(1) # Enable if you want to get rid of linespaces
+            self.current_line += 1
         return char
 
     def skip_spaces(self):
@@ -97,50 +110,50 @@ class Scanner:
             if ch != " " or ch == "":
                 return ch
 
-    def skip_comment(self):
-        pass
-
     def get_number(self):
-        ch = self.get_next_character()
         number = ""
-        while ch != "":
-            while ch.isdigit():
-                number = number + ch
-                ch = self.get_next_character()
-            if number != "":
-                break
-            else:
-                ch = self.get_next_character()
-        return [number, ch]
+        while self.current_character.isdigit():
+            number = number + self.current_character
+            self.current_character = self.get_next_character()
+        return number
 
     def get_name(self):
-        ch = self.get_next_character()
-        while not ch.isalpha():
-            ch = self.get_next_character()
-            if ch == "":
-                return [None, ch]
+        assert (len(self.current_character)==1 and isinstance(self.current_character, str))
         name = ""
-        while ch != "":
-            while ch.isalnum():
-                name = name + ch
-                ch = self.get_next_character()
-            if name != "":
-                break
-            else:
-                ch = self.get_next_character()
-        if name == "":
-            name = None
-        return [ name, ch]
+        while self.current_character.isalnum():
+            name = name + self.current_character
+            self.current_character = self.get_next_character()
+        return name
 
     def advance(self):
         pass
+
+    def create_symbol(self, string, column_pos, line_pos):
+        symbol_id = self.names.lookup([string])[0]  # Lookup requires a list
+        symbol = Symbol(string, symbol_id, line_pos, column_pos)
+        return symbol
+
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
 
         symbol = Symbol()
         self.skip_spaces()  # current character now not whitespace
+        # First check the location-modifying symbols
 
+        if self.current_character == "#":
+            # This is a 1-row comment. Ignore this line.
+            while self.current_character != "\n" and self.current_character != "":
+                self.current_character = self.get_next_character()
+            if self.current_character == "\n":
+                self.current_character = self.get_next_character()
+
+        elif self.current_character == ";":
+            # This is the marker for end of line
+            symbol.type = self.SEMICOL
+            self.checkpoint = 1 + self.file.tell()
+
+        # Now check the symbol coming after
         if self.current_character.isalpha():  # name
             name_string = self.get_name()
             if name_string in self.keywords:
@@ -149,15 +162,11 @@ class Scanner:
                 symbol.type = self.NAME
                 [symbol.id] = self.names.lookup( [name_string] )
 
-        elif self.current_character == "#":
-            #This is a comment. Ignore this line
-            self.skip_comment()
-
         elif self.current_character.isdigit():  # number
             symbol.id = self.get_number()
             symbol.type = self.NUMBER
 
-        elif self.current_character == "=":  # punctuation
+        elif self.current_character == "=":
             symbol.type = self.EQUAL
             self.advance()
 
@@ -170,11 +179,6 @@ class Scanner:
             # etc for other punctuation
             symbol.type = self.GREATER
             self.advance()
-
-        elif self.current_character == ";":
-            # etc for other punctuation
-            symbol.type = self.SEMICOL
-
 
         elif self.current_character == ".":
             symbol.type = self.DOT
@@ -193,6 +197,19 @@ class Scanner:
 
         return symbol
 
+    def get_all_symbols(self, cache=False):
+        self.file.seek(0)
+        symbols = [self.get_symbol()]
+        while symbols[-1].type != self.EOF:
+            symbols.append(self.get_symbol())
+        if cache:
+            self.symbols = symbols
+        return symbols
 
     def print_line_error(self):
-        pass
+        #line starts at self.checkpoint and error occurs at self.current_line_position-selfcheckpoint spaces away
+        temp = self.file.tell()
+        self.file.seek(self.checkpoint)
+        print(self.file.readline())
+        print(" " * (self.current_line_position-self.checkpoint) + "^")
+        self.file.seek(temp) #Go back to the error location
