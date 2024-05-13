@@ -1,0 +1,28 @@
+Syntax Errors
+
+- characters not supported in grammar
+- names starting with numbers
+- assign multiple types of devices to the same name
+- digit at beginning of name
+- letters for parameter
+- invalid combinations after a device instead of DeviceType.I/O, like DEVICE.I/O
+
+Semantic Error
+
+- 2 connections of same type
+- gate corresponds to parameters properly
+        - switches only accept 0 1
+        - gates cannot accept accept 0 inputs
+        - clock period n cannot be 0
+- redefine the device (say A=OR then A=NOR)
+- syntax errors
+- monitors only on OUTPUT ports
+- characters not supported
+
+
+
+
+
+
+
+
