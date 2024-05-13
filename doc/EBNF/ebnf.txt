@@ -8,7 +8,7 @@ device_name = (alpha | "_"), {alpha | digit | "_" } ;
 
 device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
               ("NAND", parameter) | ("OR", parameter) | ("NOR", parameter) |
-              ("XOR", parameter) | ("XOR", parameter) ;
+              ("XOR", parameter) | "DTYPE" ;
 
 parameter = "[", digit, {digit}, "]" ;
 
