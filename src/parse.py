@@ -13,7 +13,7 @@ import names, devices, network, monitors, scanner
 
 #Find ebnf grammar definitions
 ebnf_path = os.path.join(os.path.dirname(__file__),"..","doc","EBNF","ebnf.txt")
-print(ebnf_path) #Uncomment for debugging
+#print(ebnf_path) #Uncomment for debugging
 ebnf_file = open(ebnf_path, 'r')
 
 
@@ -46,6 +46,7 @@ class Parser:
         self.network = network
         self.monitors = monitors
         self.scanner = scanner
+        self.grammar = ebnf_file
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -53,4 +54,15 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
 
+        #Analyse EBNF Grammar
+        ebnf_string = self.grammar.read().replace("\n","")
+        ebnf_list = ebnf_string.split(" ;") #Split into each rule of the grammmar
+
+        #Split each rule into RHS and LHS
+        for i in range(len(ebnf_list)):
+            ebnf_list[i] = ebnf_list[i].replace(" ","")          
+            ebnf_list[i] = ebnf_list[i].split("=")
+
+        
         return True
+        
