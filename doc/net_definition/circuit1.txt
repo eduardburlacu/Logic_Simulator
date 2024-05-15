@@ -1,7 +1,7 @@
 DEVICES:
     A = OR[2] ;
     B = NOR[3] ;
-    C = AND[2] ;
+    C = AND[3] ;
     flipflop = DTYPE ;
     clock = CLOCK[05] ;
     input1, input2, set_swi, reset_swi = SWITCH[0] ;
