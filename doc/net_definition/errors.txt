@@ -15,6 +15,5 @@ Semantic Error
         - gates cannot accept accept 0 inputs
         - clock period n cannot be 0
 - redefine the device (say A=OR then A=NOR)
-- syntax errors
 - monitors only on OUTPUT ports
-- characters not supported
+
