@@ -8,14 +8,7 @@ Classes
 -------
 Parser - parses the definition file and builds the logic network.
 """
-import os
 import names, devices, network, monitors, scanner
-
-#Find ebnf grammar definitions
-ebnf_path = os.path.join(os.path.dirname(__file__),"..","doc","EBNF","ebnf.txt")
-#print(ebnf_path) #Uncomment for debugging
-ebnf_file = open(ebnf_path, 'r')
-
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -54,15 +47,81 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
 
-        #Analyse EBNF Grammar
-        ebnf_string = self.grammar.read().replace("\n","")
-        ebnf_list = ebnf_string.split(" ;") #Split into each rule of the grammmar
 
-        #Split each rule into RHS and LHS
-        for i in range(len(ebnf_list)):
-            ebnf_list[i] = ebnf_list[i].replace(" ","")          
-            ebnf_list[i] = ebnf_list[i].split("=")
-
+        #----Parse Devices----
+        # Check if file starts with device definitions
+        current_sym = self.scanner.getsymbol()
+        if current_sym.type != "DEVICES":
+                self.scanner.print_line_error()
+                return False
         
+        #Loop though symbols provided
+        while current_sym.type != "CONNECTIONS": #Read until connections 
+            if current_sym.type != "NAME":
+                self.scanner.print_line_error()
+                return False  
+            
+            while current_sym != "NAME": #Read until names run out
+               current_sym = self.scanner.getsymbol()
+               #TODO: ADD MEMORY FUNCTION TO ASSIGN  MANY NAMES TO ONE DEVICE TYPE
+               break
+            
+            current_sym = self.scanner.getsymbol()
+            if current_sym.type != "EQUALS":
+                self.scanner.print_line_error()
+                return False
+            
+            current_sym = self.scanner.getsymbol()
+            if current_sym.type != "KEYWORD": # <- TODO NEED TO IMPROVE DEVICE DETECTION
+                self.scanner.print_line_error()
+                return False
+            
+            #TODO: ADD ASSIGNMENT BUILD FUNCTION TO CREATE SPEFICIED NUMBER OF DEVICES
+            current_sym = self.scanner.getsymbol() 
+
+
+        #----Parse Connections----
+        while current_sym.type != "MONITORS": #Read until monitors
+
+            if current_sym.type != "NAME":
+                self.scanner.print_line_error()
+                return False
+            
+            current_sym = self.scanner.getsymbol()    
+            if current_sym.type != "GREATER":
+                self.scanner.print_line_error()
+                return False
+            
+            current_sym = self.scanner.getsymbol()        
+            if current_sym.type != "NAME":
+                self.scanner.print_line_error()
+                return False
+            
+            # TODO NEED TO LOOKUP DEFINED NAMES FROM DEVICES
+            current_sym = self.scanner.getsymbol()
+            if current_sym.type != "I":
+                self.scanner.print_line_error()
+                return False
+            
+            current_sym = self.scanner.getsymbol()
+            if current_sym.type != "NUMBER":
+                self.scanner.print_line_error()
+                return False
+
+            #TODO ADD CONNECTION FUNCTION TO CONNECT DEVICES
+            current_sym = self.scanner.getsymbol()
+            
+        #----Parse Monitors----
+        while current_sym.type != "EOF": #Read END
+            if current_sym.type != "NAME":
+                self.scanner.print_line_error()
+                return False  
+            
+            while current_sym != "NAME": #Read until names run out
+               current_sym = self.scanner.getsymbol()
+               #TODO: ADD MEMORY FUNCTION TO ASSIGN  MANY NAMES TO ONE DEVICE TYPE
+               break
+            current_sym = self.scanner.getsymbol()
+
         return True
         
