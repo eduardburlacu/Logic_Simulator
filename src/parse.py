@@ -39,7 +39,6 @@ class Parser:
         self.network = network
         self.monitors = monitors
         self.scanner = scanner
-        self.grammar = ebnf_file
 
     def parse_network(self):
         """Parse the circuit definition file."""
