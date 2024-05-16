@@ -55,44 +55,38 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names):
+    def __init__(self, path, names, devices, keywords):
         """Open specified file and initialise reserved words and IDs."""
         self.current_character = ""
 
         self.names = names
 
-        self.keywords:set = { "DEVICES", "CONNECTIONS", "MONITOR",
-                              "CLOCK", "SWITCH", "AND", "NAND","OR",
-                              "NOR", "XOR","DATA", "CLK", "SET",
-                              "CLEAR", "Q", "QBAR"
-                              }
+        self.devices = devices
+
+        self.keywords = keywords
+
+        #self.keywords_set:set = { "DEVICES", "CONNECTIONS", "MONITOR",
+        #                      "CLOCK", "SWITCH", "AND", "NAND",
+        #                      "OR", "NOR", "XOR","DATA",
+        #                      "CLK", "SET", "CLEAR", "Q", "QBAR","I",
+        #                      }
 
         self.digits = [ str(i) for i in range(10) ]
 
-        self.punctuation = [">", ".", ",", '"', ";", "=" ]
-
         self.symbol_type_list = [
-            self.KEYWORD,self.NAME,self.NUMBER, self.PUNCTUATION,
+            self.KEYWORD, self.NAME, self.NUMBER, self.DEVICE,
             self.EOF, self.GREATER, self.DOT, self.COMMA,
             self.QUOTE, self.SEMICOL, self.EQUAL
-        ] = range(11)
+        ] = ["KEYWORD" ,"NAME", "DEVICE" , "NUMBER" ,
+             "EOF", "GREATER",  "DOT", "COMMA",
+             "QUOTE", "SEMICOL", "EQUAL"
+             ]
 
-        self.letters = ["A", "B", "C", "D", "E", "F", "G"
-            , "H", "I", "J", "K", "L", "M", "N"
-            , "O", "P", "Q", "R", "S", "T", "U"
-            , "V", "W", "X", "Y", "Z", "a", "b"
-            , "c", "d", "e", "f", "g", "h", "i"
-            , "j", "k", "l", "m", "n", "o", "p"
-            , "q", "r", "s", "t", "u", "v", "w"
-            , "x", "y", "z"]
-
-        self.end = ""
         self.current_line: int = 1
         self.checkpoint: int = 0 # start of the current line location (to seek to that position)
         self.current_line_position: int = 0
 
         self.symbols:list = []
-        # Open the file
         self.file = open(path, "r")
 
     def get_next_character(self):
@@ -156,15 +150,20 @@ class Scanner:
         # Now check the symbol coming after
         if self.current_character.isalpha():  # name
             name_string = self.get_name()
-            if name_string in self.keywords:
+            if self.keywords.query(name_string) is not None:
                 symbol.type = self.KEYWORD
+                [symbol.id] = self.keywords.query(name_string)
+
+            elif self.devices.query(name_string) is not None:
+                symbol.type = self.DEVICE
+                [symbol.id] = self.devices.query([name_string])
             else:
                 symbol.type = self.NAME
-                [symbol.id] = self.names.lookup( [name_string] )
+                [symbol.id] = self.names.lookup([name_string])
 
         elif self.current_character.isdigit():  # number
-            symbol.id = self.get_number()
             symbol.type = self.NUMBER
+            symbol.id = self.get_number()
 
         elif self.current_character == "=":
             symbol.type = self.EQUAL
@@ -192,8 +191,9 @@ class Scanner:
             symbol.type = self.EOF
 
         else:
-            # not a valid character
-            self.advance()
+            # not a valid character, raise error
+            self.print_line_error()
+            raise SyntaxError(f"Character {self.current_character} not valid.")
 
         return symbol
 
@@ -207,7 +207,7 @@ class Scanner:
         return symbols
 
     def print_line_error(self):
-        #line starts at self.checkpoint and error occurs at self.current_line_position-selfcheckpoint spaces away
+        #line starts at self.checkpoint and error occurs at self.current_line_position-self checkpoint spaces away
         temp = self.file.tell()
         self.file.seek(self.checkpoint)
         print(self.file.readline())
