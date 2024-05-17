@@ -95,13 +95,14 @@ class Scanner:
         if char == "\n":
             # char = self.file.read(1) # Enable if you want to get rid of linespaces
             self.current_line += 1
+        self.current_character = char
         return char
 
     def skip_spaces(self):
         while True:
             ch = self.get_next_character()
             if ch != " " or ch == "":
-                return ch
+                break
 
     def get_number(self):
         number = ""
