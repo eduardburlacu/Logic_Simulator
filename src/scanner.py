@@ -57,6 +57,11 @@ class Scanner:
 
     def __init__(self, path, names, devices, keywords):
         """Open specified file and initialise reserved words and IDs."""
+        """
+        keywords_set = { "DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I" }
+        devices_set = {"CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"}
+        """
+
         self.current_character = ""
 
         self.names = names
@@ -64,12 +69,6 @@ class Scanner:
         self.devices = devices
 
         self.keywords = keywords
-
-        #self.keywords_set:set = { "DEVICES", "CONNECTIONS", "MONITOR",
-        #                      "CLOCK", "SWITCH", "AND", "NAND",
-        #                      "OR", "NOR", "XOR","DATA",
-        #                      "CLK", "SET", "CLEAR", "Q", "QBAR","I",
-        #                      }
 
         self.digits = [ str(i) for i in range(10) ]
 
@@ -94,7 +93,7 @@ class Scanner:
         char = self.file.read(1)
         self.current_line_position += 1
         if char == "\n":
-            char = self.file.read(1) # Enable if you want to get rid of linespaces
+            # char = self.file.read(1) # Enable if you want to get rid of linespaces
             self.current_line += 1
         return char
 
@@ -213,3 +212,14 @@ class Scanner:
         print(self.file.readline())
         print(" " * (self.current_line_position-self.checkpoint) + "^")
         self.file.seek(temp) #Go back to the error location
+
+if __name__=="__main__":
+    import os
+    from names import Names
+    scanner = Scanner(
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "circuit1.txt")),
+        names = Names(),
+        devices= Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"]),
+        keywords=Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"])
+    )
+    print([scanner.get_next_character() for _ in range(40)])
