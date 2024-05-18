@@ -39,9 +39,9 @@ def test_get_name_string(new_names, name_string_list, used_names, name_id, expec
     assert new_names.get_name_string(name_id) is None
 
 @pytest.mark.parametrize("query_name, expected_id",[
-    ("Leah",0),
-    ("Jack",  1),
-    ("Bob",  2),
+    ("Leah", 0),
+    ("Jack", 1),
+    ("Bob", 2),
 ])
 def test_query(new_names, name_string_list, used_names, query_name, expected_id):
     assert used_names.query(query_name) == expected_id
