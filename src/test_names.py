@@ -53,3 +53,23 @@ def test_lookup_add(used_names):
     used_names.lookup(["Edi"])
     new_length = len(used_names.names_list)
     assert new_length == original_length + 1
+
+def test_unique_error_codes_raises_exceptions(new_names):
+    """Test if unique_error_codes raises expected exceptions."""
+    with pytest.raises(TypeError):
+        new_names.unique_error_codes(1.4)
+    with pytest.raises(ValueError):
+        new_names.unique_error_codes(-1)
+
+
+@pytest.mark.parametrize(
+    "num_error_codes, error_codes", [(0, []), (1, [0]), (2, [0, 1])]
+)
+def test_unique_error_codes(
+    new_names, used_names, num_error_codes, error_codes
+):
+    """Test if unique_error_codes behaves as expected."""
+    assert new_names.unique_error_codes(num_error_codes) == error_codes
+    assert used_names.unique_error_codes(num_error_codes) == [
+        c + 1 for c in error_codes
+    ]
