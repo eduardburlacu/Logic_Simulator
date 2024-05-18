@@ -37,9 +37,12 @@ class Names:
                         the name ID. Returns None if the ID is not present.
     """
 
-    def __init__(self, names_list=[]):
+    def __init__(self, names_list=None):
         """Initialise names list."""
-        self.names_list = names_list
+        if names_list is None:
+            self.names_list=[]
+        else:
+            self.names_list = names_list
         self.error_code_count = 0  # how many error codes have been declared
 
     def unique_error_codes(self, num_error_codes):

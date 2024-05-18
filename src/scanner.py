@@ -8,7 +8,8 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
-
+from typing import Optional
+from typeguard import typechecked
 class Symbol:
 
     """Encapsulate a symbol and store its properties.
@@ -21,16 +22,18 @@ class Symbol:
     --------------
     No public methods.
     """
+
+    @typechecked
     def __init__(
             self,
-            type:str=None,
-            id:int=None,
-            line:int=None,
-            line_position:int=None
+            type_sym: Optional[str]=None,
+            id_sym: Optional[int]=None,
+            line: Optional[int]=None,
+            line_position: Optional[int]=None
     ):
         """Initialise symbol properties."""
-        self.type = type
-        self.id   = id
+        self.type = type_sym
+        self.id   = id_sym
         self.line = line
         self.line_position = line_position
 
@@ -55,14 +58,14 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names, devices, keywords):
+    def __init__(self, path:str, names, devices, keywords, punct):
         """Open specified file and initialise reserved words and IDs."""
         """
         keywords_set = { "DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I" }
         devices_set = {"CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"}
         """
 
-        self.current_character = ""
+        self.current_character = None
 
         self.names = names
 
@@ -70,19 +73,17 @@ class Scanner:
 
         self.keywords = keywords
 
-        self.digits = [ str(i) for i in range(10) ]
+        self.punct = punct
 
         self.symbol_type_list = [
             self.KEYWORD, self.NAME, self.NUMBER, self.DEVICE,
-            self.EOF, self.GREATER, self.DOT, self.COMMA,
-            self.QUOTE, self.SEMICOL, self.EQUAL
-        ] = ["KEYWORD" ,"NAME", "DEVICE" , "NUMBER" ,
-             "EOF", "GREATER",  "DOT", "COMMA",
-             "QUOTE", "SEMICOL", "EQUAL"
-             ]
+            self.EOF, self.PUNCT
+        ] = [ "KEYWORD", "NAME",
+              "NUMBER", "DEVICE",
+              "EOF", "PUNCT" ]
 
         self.current_line: int = 1
-        self.checkpoint: int = 0 # start of the current line location (to seek to that position)
+        self.checkpoint: int = 0 # start of the current line location (seek to that position)
         self.current_line_position: int = 0
 
         self.symbols:list = []
@@ -93,18 +94,15 @@ class Scanner:
         char = self.file.read(1)
         self.current_line_position += 1
         if char == "\n":
-            # char = self.file.read(1) # Enable if you want to get rid of linespaces
             self.current_line += 1
         self.current_character = char
         return char
 
     def skip_spaces(self):
-        while True:
-            ch = self.get_next_character()
-            if ch != " " or ch == "":
-                break
+        while self.current_character in {" ","\n","\t",None} and self.current_character != "":
+            self.get_next_character()
 
-    def get_number(self):
+    def get_number(self)->str:
         number = ""
         while self.current_character.isdigit():
             number = number + self.current_character
@@ -114,113 +112,107 @@ class Scanner:
     def get_name(self):
         assert (len(self.current_character)==1 and isinstance(self.current_character, str))
         name = ""
-        while self.current_character.isalnum():
+        while self.current_character.isalnum() or self.current_character=="_":
             name = name + self.current_character
             self.current_character = self.get_next_character()
         return name
 
-    def advance(self):
-        pass
 
-    def create_symbol(self, string, column_pos, line_pos):
-        symbol_id = self.names.lookup([string])[0]  # Lookup requires a list
-        symbol = Symbol(string, symbol_id, line_pos, column_pos)
-        return symbol
+    @typechecked
+    def create_symbol(self, string:str, type_sym:str):
+        if type_sym==self.EOF:
+            symbol_id = 0
+        elif type_sym==self.PUNCT:
+            symbol_id = self.punct.query(string)
+        elif type_sym==self.NAME:
+            [symbol_id] = self.names.lookup([string])
+        elif type_sym==self.DEVICE:
+            symbol_id = self.devices.query(string)
+        elif type_sym==self.KEYWORD:
+            symbol_id = self.keywords.query(string)
+        elif type_sym==self.NUMBER:
+            symbol_id = int(string)
+        else:
+            raise AttributeError("Unsupported symbol type")
 
+        return Symbol(
+            type_sym=type_sym,
+            id_sym= symbol_id,
+            line=self.current_line,
+            line_position = self.current_line_position
+        )
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
 
-        symbol = Symbol()
+        # First check the location-modifying symbols and go to the next symbol head
         self.skip_spaces()  # current character now not whitespace
-        # First check the location-modifying symbols
-
         if self.current_character == "#":
             # This is a 1-row comment. Ignore this line.
             while self.current_character != "\n" and self.current_character != "":
                 self.current_character = self.get_next_character()
             if self.current_character == "\n":
                 self.current_character = self.get_next_character()
+                self.skip_spaces()
 
-        elif self.current_character == ";":
-            # This is the marker for end of line
-            symbol.type = self.SEMICOL
-            self.checkpoint = 1 + self.file.tell()
 
         # Now check the symbol coming after
-        if self.current_character.isalpha():  # name
+        if self.current_character in {";",":"}:
+            # This is the marker for end of statement
+            symbol = self.create_symbol(self.current_character, self.PUNCT)
+            self.checkpoint = 1 + self.file.tell()
+            self.get_next_character()
+            self.skip_spaces()
+
+        elif self.current_character.isalpha() or self.current_character=="_":  # name
             name_string = self.get_name()
             if self.keywords.query(name_string) is not None:
-                symbol.type = self.KEYWORD
-                [symbol.id] = self.keywords.query(name_string)
+                symbol =self.create_symbol(name_string, self.KEYWORD)
 
             elif self.devices.query(name_string) is not None:
-                symbol.type = self.DEVICE
-                [symbol.id] = self.devices.query([name_string])
+                symbol = self.create_symbol(name_string, self.DEVICE)
+
             else:
-                symbol.type = self.NAME
-                [symbol.id] = self.names.lookup([name_string])
+                symbol = self.create_symbol(name_string, self.NAME)
 
         elif self.current_character.isdigit():  # number
-            symbol.type = self.NUMBER
-            symbol.id = self.get_number()
+            number = self.get_number()
+            symbol = self.create_symbol(number, self.NUMBER)
 
-        elif self.current_character == "=":
-            symbol.type = self.EQUAL
-            self.advance()
-
-        elif self.current_character == ",":
-            # etc for other punctuation
-            symbol.type = self.COMMA
-            self.advance()
-
-        elif self.current_character == ">":
-            # etc for other punctuation
-            symbol.type = self.GREATER
-            self.advance()
-
-        elif self.current_character == ".":
-            symbol.type = self.DOT
-            self.advance()
-
-        elif self.current_character =='"':
-            symbol.type = self.QUOTE
-            self.advance()
+        elif self.punct.query(self.current_character) is not None:
+            symbol = self.create_symbol(self.current_character, self.PUNCT)
+            self.get_next_character()
 
         elif self.current_character == "":  # end of file
-            symbol.type = self.EOF
+            symbol = self.create_symbol(self.current_character,self.EOF)
 
         else:
             # not a valid character, raise error
             self.print_line_error()
             raise SyntaxError(f"Character {self.current_character} not valid.")
-
+        print(symbol.type,symbol.id)
         return symbol
 
     def get_all_symbols(self, cache=False):
         self.file.seek(0)
-        symbols = [self.get_symbol()]
-        while symbols[-1].type != self.EOF:
-            symbols.append(self.get_symbol())
+        symbols = []
+        while True:
+            symbol = self.get_symbol()
+            symbols.append(symbol)
+            if symbols[-1].type == self.EOF:
+                break
+
         if cache:
             self.symbols = symbols
+
         return symbols
 
     def print_line_error(self):
         #line starts at self.checkpoint and error occurs at self.current_line_position-self checkpoint spaces away
         temp = self.file.tell()
         self.file.seek(self.checkpoint)
-        print(self.file.readline())
+        print("\n")
+        print(self.file.readline()[:-1])
         print(" " * (self.current_line_position-self.checkpoint) + "^")
         self.file.seek(temp) #Go back to the error location
 
-if __name__=="__main__":
-    import os
-    from names import Names
-    scanner = Scanner(
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "circuit1.txt")),
-        names = Names(),
-        devices= Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"]),
-        keywords=Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"])
-    )
-    print([scanner.get_next_character() for _ in range(40)])
