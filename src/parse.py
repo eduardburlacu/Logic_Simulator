@@ -15,29 +15,35 @@ from devices import Devices
 from monitors import Monitors
 from network import Network
 import logging
-from typing import Union, Dict
+from typing import Optional,Union, Dict, List
 
 class ErrorHandler:
     def __init__(self):
         self.error_code_map:Dict = {}
-        self.error_count: int = 0
+        self.error_count: List[int] = [0,0,0]
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.ERROR)
 
     @property
-    def get_error_count(self)->int:
-        return self.error_count
+    def get_error_count(self,idx:Optional[int]=None)->int:
+        if idx is None:
+            return sum(self.error_count)
+        elif idx in {0,1,2}:
+            return self.error_count[idx]
+        else:
+            raise AttributeError(f"error_count getter has an invalid idx:{idx}")
 
-    def register_error(self, error_code:int, error_msg):
+    def register_error(self, error_code:Union[int,List[int]], error_msg:Union[str,List[str]]):
         if not isinstance(error_code, int):
             raise ValueError("Error code must be an integer")
         self.error_code_map[error_code] = error_msg
 
-    def log_error(self, error_code:int, *args,**kwargs):
+    def log_error(self, error_code:int, idx:int,*args,**kwargs):
         """
         Handles an error by logging it.
         Args:
             error_code (int): The error code to log.
+            idx (int): One element of {0,1,2}. Encodes if the error is produced in DEVICES, CONNECTIONS, respectively MONITORS
             *args: Additional arguments to be logged with the error message.
             **kwargs: Additional keyword arguments to be logged with the error message.
         """
@@ -46,7 +52,7 @@ class ErrorHandler:
 
         error_message = self.error_code_map[error_code].format(*args, **kwargs)
         self.logger.error(error_message)
-        self.error_count += 1
+        self.error_count[idx] += 1
 
 
 class Parser:
@@ -78,45 +84,76 @@ class Parser:
         self.network: Network = network
         self.monitors: Monitors = monitors
         self.scanner: Scanner = scanner
-
+        self.scanner.file.seek(0)
         self.error_handler= ErrorHandler()
-        self.symbol:Union[Symbol,None] = None
+        self.error_handler.register_error()
+        self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
+        self.prev_symbol: Union[Symbol,None] = None
 
+    def decode(self)->str:
+        return self.scanner.decode(self.symbol)
+
+    def detect(self, string: str, type_sym: str)->bool:
+        if self.symbol.type == type_sym and self.decode()==string:
+            return True
+        return False
+
+    def next_symbol(self):
+        if self.symbol.type == self.scanner.EOF:
+            self.prev_symbol = self.symbol
+            self.symbol = None
+        else:
+            self.prev_symbol = self.symbol
+            self.symbol = self.scanner.get_symbol()
+
+    def _device_name(self):
+        """
+        EBNF: (alpha | "_"), {alpha | digit | "_" } ;
+        :return:
+        """
+        pass
+
+    def _device_type(self):
+        """
+        EBNF: device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
+              ("NAND", parameter) | ("OR", parameter) | ("NOR", parameter) |
+              ("XOR", parameter) | "DTYPE" ;
+        :return:
+        """
+        pass
+
+    def _parameter(self):
+        """
+        EBNF: "[", digit, {digit}, "]" ;
+        :return:
+        """
+
+    def _device_def(self):
+        """
+        EBNF: device_def = device_name, {",", device_name}, "=", device_type, ";" ;
+        :return:
+        """
 
     def parse_devices(self)->bool:
-        # ----Parse Devices----
-
-        if self.symbol.type != self.scanner.KEYWORD and self.scanner.devices_map.get_name_string( self.symbol.id) != "DEVICES":
-            # TODO: RAISE EXCEPTION FOR WRONG SYNTAX
+        #Handle the case when the start word is not DEVICES
+        if not self.detect("DEVICES",self.scanner.KEYWORD):
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
             return False
+        self.next_symbol()
+        if self.decode()!=":":
+            self.error_handler.log_error(2,0)
 
+        while True:
+            self._device_name()
+            if self.decode() != "=":
+                self.error_handler.log_error(3,0)
+            self._device_type()
+            if self.decode() != ";":
+                self.error_handler.log_error(2,0)
 
-        """        
-        # Loop though symbols provided
-        while self.symbol.type != "CONNECTIONS":  # Read until connections
-            if self.symbol.type != "NAME":
-                self.scanner.print_line_error()
-                return False
-
-            while self.symbol != "NAME":  # Read until names run out
-                self.symbol = self.scanner.get_symbol()
-                # TODO: ADD MEMORY FUNCTION TO ASSIGN  MANY NAMES TO ONE DEVICE TYPE
-                break
-
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "EQUALS":
-                self.scanner.print_line_error()
-                return False
-
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "KEYWORD":  # <- TODO NEED TO IMPROVE DEVICE DETECTION
-                self.scanner.print_line_error()
-                return False
-
-            # TODO: ADD ASSIGNMENT BUILD FUNCTION TO CREATE SPEFICIED NUMBER OF DEVICES
-            self.symbol = self.scanner.get_symbol()
-            """
-
+            if self.detect("CONNECTIONS", self.scanner.KEYWORD) or self.symbol.type==self.scanner.EOF:
+                return self.error_handler.error_count[0]==0
 
     def parse_connections(self)->bool:
         # ----Parse Connections----
@@ -170,11 +207,7 @@ class Parser:
         # For now just return True, so that userint and gui can run in the
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type == self.scanner.EOF:
-            # TODO: RAISE EXCEPTION FOR EMPTY FILE
-            return False
-
+        self.next_symbol()
         self.parse_devices()
         self.parse_connections()
         self.parse_monitors()

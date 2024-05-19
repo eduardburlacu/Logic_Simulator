@@ -117,6 +117,19 @@ class Scanner:
             self.current_character = self.get_next_character()
         return name
 
+    def decode(self,sym:Symbol):
+        if sym.type == self.KEYWORD:
+            return self.keywords_map.get_name_string(sym.id)
+        elif sym.type == self.EOF:
+            return ""
+        elif sym.type == self.PUNCT:
+            return self.punct_map.get_name_string(sym.id)
+        elif sym.type == self.NAME:
+            return self.names_map.get_name_string(sym.id)
+        elif sym.type == self.NUMBER:
+            return sym.id
+        elif sym.type == self.DEVICE:
+            return self.devices_map.get_name_string(sym.id)
 
     @typechecked
     def create_symbol(self, string:str, type_sym:str):
