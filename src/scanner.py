@@ -67,13 +67,13 @@ class Scanner:
 
         self.current_character = None
 
-        self.names = names
+        self.names_map = names
 
-        self.devices = devices
+        self.devices_map = devices
 
-        self.keywords = keywords
+        self.keywords_map = keywords
 
-        self.punct = punct
+        self.punct_map = punct
 
         self.symbol_type_list = [
             self.KEYWORD, self.NAME, self.NUMBER, self.DEVICE,
@@ -123,13 +123,13 @@ class Scanner:
         if type_sym==self.EOF:
             symbol_id = 0
         elif type_sym==self.PUNCT:
-            symbol_id = self.punct.query(string)
+            symbol_id = self.punct_map.query(string)
         elif type_sym==self.NAME:
-            [symbol_id] = self.names.lookup([string])
+            [symbol_id] = self.names_map.lookup([string])
         elif type_sym==self.DEVICE:
-            symbol_id = self.devices.query(string)
+            symbol_id = self.devices_map.query(string)
         elif type_sym==self.KEYWORD:
-            symbol_id = self.keywords.query(string)
+            symbol_id = self.keywords_map.query(string)
         elif type_sym==self.NUMBER:
             symbol_id = int(string)
         else:
@@ -166,10 +166,10 @@ class Scanner:
 
         elif self.current_character.isalpha() or self.current_character=="_":  # name
             name_string = self.get_name()
-            if self.keywords.query(name_string) is not None:
+            if self.keywords_map.query(name_string) is not None:
                 symbol =self.create_symbol(name_string, self.KEYWORD)
 
-            elif self.devices.query(name_string) is not None:
+            elif self.devices_map.query(name_string) is not None:
                 symbol = self.create_symbol(name_string, self.DEVICE)
 
             else:
@@ -179,7 +179,7 @@ class Scanner:
             number = self.get_number()
             symbol = self.create_symbol(number, self.NUMBER)
 
-        elif self.punct.query(self.current_character) is not None:
+        elif self.punct_map.query(self.current_character) is not None:
             symbol = self.create_symbol(self.current_character, self.PUNCT)
             self.get_next_character()
 
