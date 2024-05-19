@@ -113,28 +113,26 @@ class Parser:
         """
         pass
 
-    def _device_type(self):
+    def _device_type(self) ->bool:
         """
-        EBNF: device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
-              ("NAND", parameter) | ("OR", parameter) | ("NOR", parameter) |
-              ("XOR", parameter) | "DTYPE" ;
+        EBNF: device type = ("CLOCK",parameter) | ("SWITCH", parameter) |
+                            ("AND",parameter) | ("NAND", parameter) |
+                            ("OR", parameter) | ("NOR", parameter) |
+                            ("XOR", parameter) | "DTYPE" ;
+              pameter = "[", digit, {digit}, "]" ;
         :return:
         """
         pass
 
-    def _parameter(self):
-        """
-        EBNF: "[", digit, {digit}, "]" ;
-        :return:
-        """
 
-    def _device_def(self):
-        """
-        EBNF: device_def = device_name, {",", device_name}, "=", device_type, ";" ;
-        :return:
-        """
 
     def parse_devices(self)->bool:
+        """
+        EBNF:
+        devices = "DEVICES", ":" , device_def , { device_def } ;
+        device_def = device_name, {",", device_name}, "=", device_type, ";" ;
+        :return:
+        """
         #Handle the case when the start word is not DEVICES
         if not self.detect("DEVICES",self.scanner.KEYWORD):
             self.error_handler.log_error(1,0)
@@ -143,17 +141,21 @@ class Parser:
         self.next_symbol()
         if self.decode()!=":":
             self.error_handler.log_error(2,0)
-
+            self.scanner.print_line_error()
         while True:
             self._device_name()
             if self.decode() != "=":
                 self.error_handler.log_error(3,0)
+                self.scanner.print_line_error()
             self._device_type()
             if self.decode() != ";":
                 self.error_handler.log_error(2,0)
+                self.scanner.print_line_error()
 
-            if self.detect("CONNECTIONS", self.scanner.KEYWORD) or self.symbol.type==self.scanner.EOF:
+            if self.detect("CONNECTIONS", self.scanner.KEYWORD):
                 return self.error_handler.error_count[0]==0
+            elif self.symbol is None:  #Unexpected EOF
+                self.error_handler.log_error(3,0)
 
     def parse_connections(self)->bool:
         # ----Parse Connections----
