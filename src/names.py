@@ -85,5 +85,5 @@ class Names:
         """
         try:
             return self.names_list[name_id]
-        except ValueError as e:
+        except IndexError as e:
             return None
