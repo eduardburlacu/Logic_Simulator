@@ -14,13 +14,39 @@ from scanner import Scanner, Symbol
 from devices import Devices
 from monitors import Monitors
 from network import Network
-from typing import Union
+import logging
+from typing import Union, Dict
 
 class ErrorHandler:
     def __init__(self):
+        self.error_code_map:Dict = {}
         self.error_count: int = 0
-    def log(self):
-        pass
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.ERROR)
+
+    @property
+    def get_error_count(self)->int:
+        return self.error_count
+
+    def register_error(self, error_code:int, error_msg):
+        if not isinstance(error_code, int):
+            raise ValueError("Error code must be an integer")
+        self.error_code_map[error_code] = error_msg
+
+    def log_error(self, error_code:int, *args,**kwargs):
+        """
+        Handles an error by logging it.
+        Args:
+            error_code (int): The error code to log.
+            *args: Additional arguments to be logged with the error message.
+            **kwargs: Additional keyword arguments to be logged with the error message.
+        """
+        if error_code not in self.error_code_map:
+            self.logger.error(f"Unknown error code: {error_code}")
+
+        error_message = self.error_code_map[error_code].format(*args, **kwargs)
+        self.logger.error(error_message)
+        self.error_count += 1
 
 
 class Parser:
@@ -47,7 +73,7 @@ class Parser:
 
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
-        self.names:Names = names
+        self.names: Names = names
         self.devices: Devices = devices
         self.network: Network = network
         self.monitors: Monitors = monitors
@@ -64,6 +90,8 @@ class Parser:
             # TODO: RAISE EXCEPTION FOR WRONG SYNTAX
             return False
 
+
+        """        
         # Loop though symbols provided
         while self.symbol.type != "CONNECTIONS":  # Read until connections
             if self.symbol.type != "NAME":
@@ -87,6 +115,7 @@ class Parser:
 
             # TODO: ADD ASSIGNMENT BUILD FUNCTION TO CREATE SPEFICIED NUMBER OF DEVICES
             self.symbol = self.scanner.get_symbol()
+            """
 
 
     def parse_connections(self)->bool:
@@ -150,4 +179,17 @@ class Parser:
         self.parse_connections()
         self.parse_monitors()
         return self.error_handler.error_count == 0
-        
+
+
+if __name__ == "__main__":
+    #Handler example usage
+    error_handler = ErrorHandler()
+
+    error_handler.register_error(100, "Invalid input: {{value}}")
+    error_handler.register_error(200, "File not found: {{filename}}")
+
+    error_handler.log_error(100, value=42)
+    error_handler.log_error(200, filename="data.txt")
+    error_handler.log_error(300, "Unknown error")  # Not registered
+
+    print(f"Total errors logged: {error_handler.get_error_count}")
