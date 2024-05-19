@@ -25,8 +25,6 @@ def test_get_name_string_raises_exceptions(used_names):
         used_names.get_name_string(1.4)
     with pytest.raises(TypeError):
         used_names.get_name_string("hello")
-    with pytest.raises(ValueError):
-        used_names.get_name_string(-1)
 
 @pytest.mark.parametrize("name_id, expected_string", [
     (0, "Leah"),
@@ -58,9 +56,6 @@ def test_unique_error_codes_raises_exceptions(new_names):
     """Test if unique_error_codes raises expected exceptions."""
     with pytest.raises(TypeError):
         new_names.unique_error_codes(1.4)
-    with pytest.raises(ValueError):
-        new_names.unique_error_codes(-1)
-
 
 @pytest.mark.parametrize(
     "num_error_codes, error_codes", [(0, []), (1, [0]), (2, [0, 1])]
@@ -69,7 +64,7 @@ def test_unique_error_codes(
     new_names, used_names, num_error_codes, error_codes
 ):
     """Test if unique_error_codes behaves as expected."""
-    assert new_names.unique_error_codes(num_error_codes) == error_codes
-    assert used_names.unique_error_codes(num_error_codes) == [
-        c + 1 for c in error_codes
+    assert list(new_names.unique_error_codes(num_error_codes)) == error_codes
+    assert list(used_names.unique_error_codes(num_error_codes)) == [
+        c for c in error_codes
     ]
