@@ -200,6 +200,8 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
+        parameter = None
+
         if device_type not in {"XOR","DTYPE"}: # PARAMETER REQUIRED
 
             if self.decode()!="[":
@@ -217,7 +219,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-            parameter: int = self.symbol.id
+            parameter = self.symbol.id
 
             self.next_symbol()
 
@@ -234,10 +236,13 @@ class Parser:
             self.device_types.append((device_type,parameter))
 
             self.next_symbol()
+
             if self.symbol is None:
                 self.error_handler.log_error(1, 0)
                 self.scanner.print_line_error()
                 return False
+
+        self.device_types.append((device_type, parameter))
 
         if self.decode() != ";":
             self.error_handler.log_error(2, 0)
@@ -275,8 +280,8 @@ class Parser:
         self.symbol = self.scanner.get_symbol()
         """
 
-        if not self.symbol.type == self.scanner.NAME:
-            self.error_handler.log_error(1,0)
+        if self.symbol.type != self.scanner.NAME:
+            self.error_handler.log_error(1,1)
             self.scanner.print_line_error()
             return False
         #Check the device is defined
@@ -286,17 +291,86 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
+        self.next_symbol()
+        if self.symbol is None:
+            self.error_handler.log_error(1, 1)
+            self.scanner.print_line_error()
+            return False
+
+        out_pin_arg=None
         # Check the case when the output port needs arguments
-        if self.decode() == "DTYPE":
+        if self.device_types[out_pin] == "DTYPE":
+            if self.decode() != ".":
+                self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
+                return False
+
+            self.next_symbol()
+
+            if self.symbol is None:
+                self.error_handler.log_error(1, 1)
+                self.scanner.print_line_error()
+                return False
+
+            if self.decode() not in {"Q","QBAR"} and self.symbol.type==self.scanner.KEYWORD:
+                self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
+                return False
+
+            out_pin_arg = self.decode()
             self.next_symbol()
             if self.symbol is None:
                 self.error_handler.log_error(1, 1)
                 self.scanner.print_line_error()
                 return False
-            elif self.decode() != ".":
+
+        if self.decode()!=">":
+            self.error_handler.log_error(6,1)
+            return False
+
+        self.next_symbol()
+        if self.symbol is None:
+            self.error_handler.log_error(1, 1)
+            self.scanner.print_line_error()
+            return False
+        in_pin = self.decode()
+        if in_pin not in self.devices_defined:
+            self.error_handler.log_error(0,1)
+            self.scanner.print_line_error()
+            return False
+
+        self.next_symbol()
+        if self.symbol is None:
+            self.error_handler.log_error(1, 1)
+            self.scanner.print_line_error()
+            return False
+        elif self.decode()!=".":
+            self.error_handler.log_error(6, 1)
+            return False
+        in_pin_arg = None
+
+        if self.symbol is None:
+            self.error_handler.log_error(1, 1)
+            self.scanner.print_line_error()
+            return False
+        elif self.symbol.type != self.scanner.KEYWORD:
+            self.error_handler.log_error(4, 1)
+            return False
+
+        # Check the case when the input port needs arguments
+        if self.device_types[in_pin] == "DTYPE":
+            # TODO CHECK THE TYPES ARE CLOCK NAND ETC.
+            pass
+        else:
+            # TODO CHECK THE SEQUENCE I#
+            pass
+        """
+        if self.device_types[out_pin] == "DTYPE":
+            if self.decode() != ".":
                 self.error_handler.log_error(7, 1)
                 self.scanner.print_line_error()
                 return False
+            
             self.next_symbol()
 
             if self.symbol is None:
@@ -310,12 +384,14 @@ class Parser:
                 return False
 
             out_pin_arg = self.decode()
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(1, 1)
+                self.scanner.print_line_error()
+                return False
+        """
 
-
-
-
-
-
+        connection = ((out_pin,out_pin_arg), (in_pin,in_pin_arg))
 
     def parse_devices(self)->bool:
         """
