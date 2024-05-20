@@ -9,7 +9,7 @@ Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
 from typing import Optional
-from typeguard import typechecked
+#from typeguard import typechecked
 class Symbol:
 
     """Encapsulate a symbol and store its properties.
@@ -23,7 +23,7 @@ class Symbol:
     No public methods.
     """
 
-    @typechecked
+    #@typechecked
     def __init__(
             self,
             type_sym: Optional[str]=None,
@@ -118,7 +118,7 @@ class Scanner:
         return name
 
 
-    @typechecked
+    #@typechecked
     def create_symbol(self, string:str, type_sym:str):
         if type_sym==self.EOF:
             symbol_id = 0

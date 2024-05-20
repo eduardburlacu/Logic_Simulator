@@ -243,49 +243,70 @@ class Gui(wx.Frame):
         self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "No Cycles")
+        self.textC = wx.StaticText(self, wx.ID_ANY, "Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.text2 = wx.StaticText(self, wx.ID_ANY, "Simulation")
+        
+        self.textS = wx.StaticText(self, wx.ID_ANY, "Simulation")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
-        self.text3 = wx.StaticText(self, wx.ID_ANY, "Monitors")
+        
+        self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.make_button = wx.Button(self, wx.ID_ANY, "Make")
+        
+        self.textI = wx.StaticText(self, wx.ID_ANY, "Inputs")
+        self.spin2 = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.set_button = wx.Button(self, wx.ID_ANY, "Set")
+        
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-                                    style=wx.TE_PROCESS_ENTER)
+											style=wx.TE_PROCESS_ENTER)
 
         # Bind events to widgets
-        self.Bind(wx.EVT_MENU, self.on_menu)
-        self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
-        self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
-        self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
-        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
-
+		self.Bind(wx.EVT_MENU, self.on_menu)
+		self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
+		self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+		self.continue_button.Bind(wx.EVT_BUTTON,
+											self.on_continue_button)
+		self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
+		self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
+		self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+		
         # Configure sizers for layout
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        side_sizer = wx.BoxSizer(wx.VERTICAL)
-        button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+		main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+		side_sizer = wx.BoxSizer(wx.VERTICAL)
+		button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+		button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+		button_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
-        side_sizer.Add(self.text, 1, wx.TOP, 10)
-        side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.text2, 1, wx.TOP, 10)
-        side_sizer.Add(self.text3, 1, wx.TOP, 10)
+		# ---Button Configuration
         button_sizer1.Add(self.run_button, 1, wx.ALL, 5)
         button_sizer1.Add(self.continue_button, 1, wx.ALL, 5)
-        button_sizer2.Add(self.remove_button, 1, wx.ALL, 5)
         button_sizer2.Add(self.make_button, 1, wx.ALL, 5)
+        button_sizer2.Add(self.remove_button, 1, wx.ALL, 5)
+        
+        button_sizer3.Add(self.spin2, 1, wx.ALL, 5)
+        button_sizer3.Add(self.set_button, 1, wx.ALL, 5)
 
+		# ---Cycles
+        side_sizer.Add(self.textC, 1, wx.TOP, 10)
+        side_sizer.Add(self.spin, 1, wx.ALL, 5)
+        
+        # ---Simulation
+        side_sizer.Add(self.textS, 1, wx.TOP, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 5)
+        
+        # ---Monitors
+        side_sizer.Add(self.textM, 1, wx.TOP, 10)
         side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 5)
-
         side_sizer.Add(self.text_box, 1, wx.ALL, 5) 
-
+        
+        # ---Set Switch
+        side_sizer.Add(self.textSw, 1, wx.ALL, 5)
+        side_sizer.Add(button_sizer3, 1, wx.ALL, 5)
+		
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
 
