@@ -18,9 +18,9 @@ connections = "CONNECTIONS", connection_def, {connection_def}, ";" ;
 connection_def = (out_port, ">", in_port), ";" ;
 
 
-in_port = (device_name,".I", digit, {digit} ) | (device_name, ".", ( "DATA" | "CLK" | "SET" | "CLEAR" ) ) ;
+in_port = device_name , "." , ( "DATA" | "CLK" | "SET" | "CLEAR" | ( "I", digit, {digit} )  ) ;
 
-out_port = (device_name, digit) | (device_name, ",", ( "Q","QBAR" )) ;
+out_port = device_name , [".",("Q"|"QBAR")] ;
 
 
 monitors = "MONITOR", ":", monitor_def ;

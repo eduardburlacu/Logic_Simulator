@@ -33,7 +33,12 @@ class ErrorHandler:
         else:
             raise AttributeError(f"error_count getter has an invalid idx:{idx}")
 
-    def register_error(self, error_code:Union[int,List[int]], error_msg:Union[str,List[str]]):
+    def register_error(
+            self,
+            error_code:Union[int,List[int]],
+            error_msg:Union[str,List[str]]
+    ):
+
         if not isinstance(error_code, int):
             raise ValueError("Error code must be an integer")
         self.error_code_map[error_code] = error_msg
@@ -43,7 +48,8 @@ class ErrorHandler:
         Handles an error by logging it.
         Args:
             error_code (int): The error code to log.
-            idx (int): One element of {0,1,2}. Encodes if the error is produced in DEVICES, CONNECTIONS, respectively MONITORS
+            idx (int): One element of {0,1,2}. Encodes if the error is produced
+                       in DEVICES, CONNECTIONS, respectively MONITORS
             *args: Additional arguments to be logged with the error message.
             **kwargs: Additional keyword arguments to be logged with the error message.
         """
@@ -86,15 +92,18 @@ class Parser:
         self.scanner: Scanner = scanner
         self.scanner.file.seek(0)
         self.error_handler= ErrorHandler()
-        self.error_handler.register_error()
         self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
         self.prev_symbol: Union[Symbol,None] = None
 
-    def decode(self)->str:
+    def decode(self)->Union[str,None]:
+        if self.symbol is None:
+            return None
         return self.scanner.decode(self.symbol)
 
     def detect(self, string: str, type_sym: str)->bool:
-        if self.symbol.type == type_sym and self.decode()==string:
+        if self.decode() != string:
+            return False
+        if self.symbol.type == type_sym:
             return True
         return False
 
@@ -106,12 +115,56 @@ class Parser:
             self.prev_symbol = self.symbol
             self.symbol = self.scanner.get_symbol()
 
-    def _device_name(self):
+    def _device_name(self)->bool:
         """
         EBNF: (alpha | "_"), {alpha | digit | "_" } ;
-        :return:
         """
-        pass
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+        elif self.symbol.type != self.scanner.NAME:
+            self.error_handler.log_error(5,0)
+            self.scanner.print_line_error()
+            return False
+        devices_defined = [self.decode()]
+        self.next_symbol()
+        if self.symbol is None:
+            self.error_handler.log_error(7, 0)
+            return False
+        elif self.symbol != self.scanner.PUNCT:
+            self.error_handler.log_error(5,0)
+            return False
+
+        while self.decode() == ",":
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(7, 0)
+                return False
+            elif self.symbol.type != self.scanner.NAME:
+                self.error_handler.log_error(5, 0)
+                self.scanner.print_line_error()
+                return False
+
+            devices_defined.append(self.decode())
+
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
+                return False
+            elif self.symbol != self.scanner.PUNCT:
+                self.error_handler.log_error(5, 0)
+                self.scanner.print_line_error()
+                return False
+
+        if self.decode() != "=":
+            self.error_handler.log_error(5, 0)
+            self.scanner.print_line_error()
+            return False
+        # TODO: when integrating devices, the list devices_defined can be used to interface with those
+        return True
+
 
     def _device_type(self) ->bool:
         """
@@ -138,11 +191,14 @@ class Parser:
             self.error_handler.log_error(1,0)
             self.scanner.print_line_error()
             return False
+
         self.next_symbol()
         if self.decode()!=":":
             self.error_handler.log_error(2,0)
             self.scanner.print_line_error()
+
         while True:
+            self.next_symbol()
             self._device_name()
             if self.decode() != "=":
                 self.error_handler.log_error(3,0)
@@ -156,6 +212,8 @@ class Parser:
                 return self.error_handler.error_count[0]==0
             elif self.symbol is None:  #Unexpected EOF
                 self.error_handler.log_error(3,0)
+                self.scanner.print_line_error()
+                return False
 
     def parse_connections(self)->bool:
         # ----Parse Connections----
@@ -219,12 +277,9 @@ class Parser:
 if __name__ == "__main__":
     #Handler example usage
     error_handler = ErrorHandler()
-
     error_handler.register_error(100, "Invalid input: {{value}}")
     error_handler.register_error(200, "File not found: {{filename}}")
-
-    error_handler.log_error(100, value=42)
-    error_handler.log_error(200, filename="data.txt")
-    error_handler.log_error(300, "Unknown error")  # Not registered
-
+    error_handler.log_error(100, 0)
+    error_handler.log_error(200, 1)
     print(f"Total errors logged: {error_handler.get_error_count}")
+
