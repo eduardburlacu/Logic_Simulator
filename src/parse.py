@@ -93,7 +93,6 @@ class Parser:
         self.scanner.file.seek(0)
 
         self.error_handler= ErrorHandler()
-
         self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
         self.prev_symbol: Union[Symbol,None] = None
 
@@ -598,14 +597,4 @@ class Parser:
             return False
 
         return self.error_handler.error_count == 0
-
-
-if __name__ == "__main__":
-    #Handler example usage
-    error_handler = ErrorHandler()
-    error_handler.register_error(100, "Invalid input: {{value}}")
-    error_handler.register_error(200, "File not found: {{filename}}")
-    error_handler.log_error(100, 0)
-    error_handler.log_error(200, 1)
-    print(f"Total errors logged: {error_handler.get_error_count}")
 
