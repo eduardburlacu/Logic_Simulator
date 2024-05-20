@@ -243,9 +243,14 @@ class Gui(wx.Frame):
         self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Configure the widgets
-        self.text = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        self.text = wx.StaticText(self, wx.ID_ANY, "No Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
+        self.text2 = wx.StaticText(self, wx.ID_ANY, "Simulation")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
+        self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
+        self.text3 = wx.StaticText(self, wx.ID_ANY, "Monitors")
+        self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
+        self.make_button = wx.Button(self, wx.ID_ANY, "Make")
         self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
                                     style=wx.TE_PROCESS_ENTER)
 
@@ -253,19 +258,33 @@ class Gui(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
+        self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
+        self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
         self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
+        button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         side_sizer.Add(self.text, 1, wx.TOP, 10)
         side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        side_sizer.Add(self.run_button, 1, wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.ALL, 5)
+        side_sizer.Add(self.text2, 1, wx.TOP, 10)
+        side_sizer.Add(self.text3, 1, wx.TOP, 10)
+        button_sizer1.Add(self.run_button, 1, wx.ALL, 5)
+        button_sizer1.Add(self.continue_button, 1, wx.ALL, 5)
+        button_sizer2.Add(self.remove_button, 1, wx.ALL, 5)
+        button_sizer2.Add(self.make_button, 1, wx.ALL, 5)
+
+        side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 5)
+        side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 5)
+
+        side_sizer.Add(self.text_box, 1, wx.ALL, 5) 
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -288,6 +307,21 @@ class Gui(wx.Frame):
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
         text = "Run button pressed."
+        self.canvas.render(text)
+
+    def on_continue_button(self, event):
+        """Handle the event when the user clicks the continue button."""
+        text = "Continue button pressed."
+        self.canvas.render(text)
+
+    def on_remove_button(self, event):
+        """Handle the event when the user clicks the remove button."""
+        text = "Remove button pressed."
+        self.canvas.render(text)
+
+    def on_make_button(self, event):
+        """Handle the event when the user clicks the make button."""
+        text = "Make button pressed."
         self.canvas.render(text)
 
     def on_text_box(self, event):
