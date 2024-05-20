@@ -258,6 +258,16 @@ class Gui(wx.Frame):
         self.spin2 = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.set_button = wx.Button(self, wx.ID_ANY, "Set")
 
+        # Create the list control for items with on/off states
+        self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+        self.list_ctrl.InsertColumn(0, 'Item', width=140)
+        self.list_ctrl.InsertColumn(1, 'State', width=60)
+
+        # Add sample items to the list control
+        for i in range(5):
+            index = self.list_ctrl.InsertItem(i, f'Item {i+1}')
+            self.list_ctrl.SetItem(index, 1, 'Off')
+
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
@@ -266,6 +276,7 @@ class Gui(wx.Frame):
 											self.on_continue_button)
         self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_list_item_activated)
 		
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -301,6 +312,8 @@ class Gui(wx.Frame):
         # ---Set Switch
         side_sizer.Add(self.textI, 1, wx.ALL, 5)
         side_sizer.Add(button_sizer3, 1, wx.ALL, 5)
+
+        side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 5)
 		
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -340,3 +353,10 @@ class Gui(wx.Frame):
         text = "Make button pressed."
         self.canvas.render(text)
 
+    def on_list_item_activated(self, event):
+        """Handle the event when a list item is activated (double-clicked)."""
+        index = event.GetIndex()
+        current_state = self.list_ctrl.GetItem(index, 1).GetText()
+        new_state = 'On' if current_state == 'Off' else 'Off'
+        self.list_ctrl.SetItem(index, 1, new_state)
+        self.canvas.render(f"Item {index+1} state changed to: {new_state}")
