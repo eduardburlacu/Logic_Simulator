@@ -257,9 +257,6 @@ class Gui(wx.Frame):
         self.textI = wx.StaticText(self, wx.ID_ANY, "Inputs")
         self.spin2 = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.set_button = wx.Button(self, wx.ID_ANY, "Set")
-        
-        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "",
-											style=wx.TE_PROCESS_ENTER)
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
@@ -269,7 +266,6 @@ class Gui(wx.Frame):
 											self.on_continue_button)
         self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
-        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 		
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -301,7 +297,6 @@ class Gui(wx.Frame):
         # ---Monitors
         side_sizer.Add(self.textM, 1, wx.TOP, 10)
         side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 5)
-        side_sizer.Add(self.text_box, 1, wx.ALL, 5) 
         
         # ---Set Switch
         side_sizer.Add(self.textI, 1, wx.ALL, 5)
@@ -345,8 +340,3 @@ class Gui(wx.Frame):
         text = "Make button pressed."
         self.canvas.render(text)
 
-    def on_text_box(self, event):
-        """Handle the event when the user enters text."""
-        text_box_value = self.text_box.GetValue()
-        text = "".join(["New text box value: ", text_box_value])
-        self.canvas.render(text)
