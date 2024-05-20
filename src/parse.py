@@ -171,12 +171,72 @@ class Parser:
         EBNF: device type = ("CLOCK",parameter) | ("SWITCH", parameter) |
                             ("AND",parameter) | ("NAND", parameter) |
                             ("OR", parameter) | ("NOR", parameter) |
-                            ("XOR", parameter) | "DTYPE" ;
+                             "XOR" | "DTYPE" ;
               pameter = "[", digit, {digit}, "]" ;
         :return:
         """
-        pass
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
 
+        elif self.symbol.type != self.scanner.DEVICE:
+            self.error_handler.log_error(5,0)
+            self.scanner.print_line_error()
+            return False
+
+        device_type = self.decode()
+
+        self.next_symbol()
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+
+        if device_type not in {"XOR","DTYPE"}: # PARAMETER REQUIRED
+
+            if self.decode()!="[":
+                self.error_handler.log_error(6,0)
+                return False
+
+            self.next_symbol()
+
+            if self.symbol is None:
+                self.error_handler.log_error(1, 0)
+                self.scanner.print_line_error()
+                return False
+            elif self.symbol != self.scanner.NUMBER:
+                self.error_handler.log_error(5, 0)
+                self.scanner.print_line_error()
+                return False
+
+            parameter: int = self.symbol.id
+
+            self.next_symbol()
+
+            if self.symbol is None:
+                self.error_handler.log_error(1, 0)
+                self.scanner.print_line_error()
+                return False
+
+            elif self.decode()!="]":
+                self.error_handler.log_error(1, 0)
+                self.scanner.print_line_error()
+                return False
+
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(1, 0)
+                self.scanner.print_line_error()
+                return False
+
+        if self.decode() != ";":
+            self.error_handler.log_error(2, 0)
+            self.scanner.print_line_error()
+            return False
+        # TODO: device_type or (device_type,paramter) will be passed to devices
+        return True
 
 
     def parse_devices(self)->bool:
@@ -193,27 +253,32 @@ class Parser:
             return False
 
         self.next_symbol()
-        if self.decode()!=":":
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+        elif self.decode()!=":":
             self.error_handler.log_error(2,0)
             self.scanner.print_line_error()
 
+        self.next_symbol()
+
         while True:
-            self.next_symbol()
+
             self._device_name()
-            if self.decode() != "=":
-                self.error_handler.log_error(3,0)
-                self.scanner.print_line_error()
+            self.next_symbol()
             self._device_type()
-            if self.decode() != ";":
-                self.error_handler.log_error(2,0)
-                self.scanner.print_line_error()
+            self.next_symbol()
 
             if self.detect("CONNECTIONS", self.scanner.KEYWORD):
                 return self.error_handler.error_count[0]==0
+
             elif self.symbol is None:  #Unexpected EOF
                 self.error_handler.log_error(3,0)
                 self.scanner.print_line_error()
                 return False
+
 
     def parse_connections(self)->bool:
         # ----Parse Connections----
