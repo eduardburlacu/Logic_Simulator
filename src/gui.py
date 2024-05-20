@@ -243,29 +243,26 @@ class Gui(wx.Frame):
         self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Configure the widgets
-        self.textC = wx.StaticText(self, wx.ID_ANY, "Cycles")
+        self.textC = wx.StaticText(self, wx.ID_ANY, "Simulation Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        
-        self.textS = wx.StaticText(self, wx.ID_ANY, "Simulation")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
         
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
-        self.make_button = wx.Button(self, wx.ID_ANY, "Make")
+        self.make_button = wx.Button(self, wx.ID_ANY, "Add")
         
-        self.textI = wx.StaticText(self, wx.ID_ANY, "Inputs")
-        self.spin2 = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.set_button = wx.Button(self, wx.ID_ANY, "Set")
+        self.text_box = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_PROCESS_ENTER)
+
 
         # Create the list control for items with on/off states
         self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
-        self.list_ctrl.InsertColumn(0, 'Item', width=140)
+        self.list_ctrl.InsertColumn(0, 'Input', width=140)
         self.list_ctrl.InsertColumn(1, 'State', width=60)
 
         # Add sample items to the list control
         for i in range(5):
-            index = self.list_ctrl.InsertItem(i, f'Item {i+1}')
+            index = self.list_ctrl.InsertItem(i, f'Switch {i+1}')
             self.list_ctrl.SetItem(index, 1, 'Off')
 
         # Bind events to widgets
@@ -283,37 +280,28 @@ class Gui(wx.Frame):
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
 		# ---Button Configuration
-        button_sizer1.Add(self.run_button, 1, wx.ALL, 5)
-        button_sizer1.Add(self.continue_button, 1, wx.ALL, 5)
-        button_sizer2.Add(self.make_button, 1, wx.ALL, 5)
-        button_sizer2.Add(self.remove_button, 1, wx.ALL, 5)
-        
-        button_sizer3.Add(self.spin2, 1, wx.ALL, 5)
-        button_sizer3.Add(self.set_button, 1, wx.ALL, 5)
+        button_sizer1.Add(self.run_button, 1, wx.ALL, 0)
+        button_sizer1.Add(self.continue_button, 1, wx.ALL, 0)
+        button_sizer2.Add(self.make_button, 1, wx.ALL, 0)
+        button_sizer2.Add(self.remove_button, 1, wx.ALL, 0)
 
-		# ---Cycles
-        side_sizer.Add(self.textC, 1, wx.TOP, 10)
-        side_sizer.Add(self.spin, 1, wx.ALL, 5)
-        
-        # ---Simulation
-        side_sizer.Add(self.textS, 1, wx.TOP, 10)
-        side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 5)
+		# ---Simulation Cycles
+        side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
         
         # ---Monitors
-        side_sizer.Add(self.textM, 1, wx.TOP, 10)
-        side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 5)
+        side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(self.text_box, 1, wx.ALL, 10)
+        side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 10)
         
-        # ---Set Switch
-        side_sizer.Add(self.textI, 1, wx.ALL, 5)
-        side_sizer.Add(button_sizer3, 1, wx.ALL, 5)
-
-        side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 5)
+        # ---Set Switches
+        side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 10)
 		
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
@@ -360,3 +348,9 @@ class Gui(wx.Frame):
         new_state = 'On' if current_state == 'Off' else 'Off'
         self.list_ctrl.SetItem(index, 1, new_state)
         self.canvas.render(f"Item {index+1} state changed to: {new_state}")
+
+    def on_text_box(self, event):
+        """Handle the event when the user enters text."""
+        text_box_value = self.text_box.GetValue()
+        text = "".join(["New text box value: ", text_box_value])
+        self.canvas.render(text)
