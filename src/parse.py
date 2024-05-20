@@ -94,6 +94,7 @@ class Parser:
         self.error_handler= ErrorHandler()
         self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
         self.prev_symbol: Union[Symbol,None] = None
+        self.devices_defined: List = []
 
     def decode(self)->Union[str,None]:
         if self.symbol is None:
@@ -127,7 +128,7 @@ class Parser:
             self.error_handler.log_error(5,0)
             self.scanner.print_line_error()
             return False
-        devices_defined = [self.decode()]
+        self.devices_defined = [self.decode()]
         self.next_symbol()
         if self.symbol is None:
             self.error_handler.log_error(7, 0)
@@ -146,7 +147,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-            devices_defined.append(self.decode())
+            self.devices_defined.append(self.decode())
 
             self.next_symbol()
             if self.symbol is None:
@@ -235,8 +236,46 @@ class Parser:
             self.error_handler.log_error(2, 0)
             self.scanner.print_line_error()
             return False
-        # TODO: device_type or (device_type,paramter) will be passed to devices
+        # TODO: device_type or (device_type, paramter) will be passed to devices
         return True
+
+
+    def _connection_def(self):
+        """
+
+        if self.symbol.type != "NAME":
+            self.scanner.print_line_error()
+            return False
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != "GREATER":
+            self.scanner.print_line_error()
+            return False
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != "NAME":
+            self.scanner.print_line_error()
+            return False
+
+        # TODO NEED TO LOOKUP DEFINED NAMES FROM DEVICES
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != "I":
+            self.scanner.print_line_error()
+            return False
+
+        self.symbol = self.scanner.get_symbol()
+        if self.symbol.type != "NUMBER":
+            self.scanner.print_line_error()
+            return False
+
+        # TODO ADD CONNECTION FUNCTION TO CONNECT DEVICES
+        self.symbol = self.scanner.get_symbol()
+        """
+
+        if not self.symbol.type == self.scanner.NAME:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
 
 
     def parse_devices(self)->bool:
@@ -258,6 +297,7 @@ class Parser:
             self.error_handler.log_error(1,0)
             self.scanner.print_line_error()
             return False
+
         elif self.decode()!=":":
             self.error_handler.log_error(2,0)
             self.scanner.print_line_error()
@@ -279,38 +319,37 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-
     def parse_connections(self)->bool:
-        # ----Parse Connections----
-        while self.symbol.type != "MONITORS":  # Read until monitors
 
-            if self.symbol.type != "NAME":
+        #Handle the case when the start word is not CONNECTIONS
+        if not self.detect( "CONNECTIONS",self.scanner.KEYWORD):
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+
+        self.next_symbol()
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+
+        elif self.decode()!=":":
+            self.error_handler.log_error(2,0)
+            self.scanner.print_line_error()
+            return False
+
+        while True:
+            self.next_symbol()
+            if self.symbol is None:  #Unexpected EOF
+                self.error_handler.log_error(3,0)
                 self.scanner.print_line_error()
                 return False
 
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "GREATER":
-                self.scanner.print_line_error()
-                return False
+            elif self.detect("MONITORS", self.scanner.KEYWORD):
+                return self.error_handler.error_count[0]==0
 
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "NAME":
-                self.scanner.print_line_error()
-                return False
-
-            # TODO NEED TO LOOKUP DEFINED NAMES FROM DEVICES
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "I":
-                self.scanner.print_line_error()
-                return False
-
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type != "NUMBER":
-                self.scanner.print_line_error()
-                return False
-
-            # TODO ADD CONNECTION FUNCTION TO CONNECT DEVICES
-            self.symbol = self.scanner.get_symbol()
+            self._connection_def()
 
 
     def parse_monitors(self)->bool:

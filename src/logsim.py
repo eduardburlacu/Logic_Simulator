@@ -57,7 +57,14 @@ def main(arg_list):
             print(usage_message)
             sys.exit()
         elif option == "-c":  # use the command line user interface
-            scanner = Scanner(path, names)
+            scanner = Scanner(
+                path,
+                names,
+                devices=Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK", "OR", "NOR", "XOR"]),
+                keywords=Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
+                punct=Names([",", ".", ":", ";", ">", "[", "]", "="])
+            )
+
             parser = Parser(names, devices, network, monitors, scanner)
             if parser.parse_network():
                 # Initialise an instance of the userint.UserInterface() class
@@ -72,7 +79,13 @@ def main(arg_list):
             sys.exit()
 
         [path] = arguments
-        scanner = Scanner(path, names)
+        scanner = Scanner(
+            path,
+            names,
+            devices = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR"]),
+            keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
+            punct= Names([ ",", ".", ":", ";", ">", "[", "]", "=" ])
+        )
         parser = Parser(names, devices, network, monitors, scanner)
         if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
