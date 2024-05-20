@@ -262,21 +262,21 @@ class Gui(wx.Frame):
 											style=wx.TE_PROCESS_ENTER)
 
         # Bind events to widgets
-		self.Bind(wx.EVT_MENU, self.on_menu)
-		self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
-		self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-		self.continue_button.Bind(wx.EVT_BUTTON,
+        self.Bind(wx.EVT_MENU, self.on_menu)
+        self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
+        self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
+        self.continue_button.Bind(wx.EVT_BUTTON,
 											self.on_continue_button)
-		self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
-		self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
-		self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
+        self.make_button.Bind(wx.EVT_BUTTON, self.on_make_button)
+        self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
+        self.text_box.Bind(wx.EVT_TEXT_ENTER, self.on_text_box)
 		
         # Configure sizers for layout
-		main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-		side_sizer = wx.BoxSizer(wx.VERTICAL)
-		button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-		button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-		button_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        side_sizer = wx.BoxSizer(wx.VERTICAL)
+        button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        button_sizer3 = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
@@ -304,7 +304,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.text_box, 1, wx.ALL, 5) 
         
         # ---Set Switch
-        side_sizer.Add(self.textSw, 1, wx.ALL, 5)
+        side_sizer.Add(self.textI, 1, wx.ALL, 5)
         side_sizer.Add(button_sizer3, 1, wx.ALL, 5)
 		
         self.SetSizeHints(600, 600)
