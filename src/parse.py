@@ -99,7 +99,11 @@ class Parser:
 
         self.devices_defined: Dict = {}
         self.device_types: List = []
-        self.connections_defined= []
+
+        self.out_ports:List[Tuple[str,Union[str,int]]] = []
+        self.connections_defined:List = []
+
+        self.monitors_defined:List = []
         self.counter:int = 0
 
     def decode(self)->Union[str,None]:
@@ -181,7 +185,7 @@ class Parser:
                             ("AND",parameter) | ("NAND", parameter) |
                             ("OR", parameter) | ("NOR", parameter) |
                              "XOR" | "DTYPE" ;
-              pameter = "[", digit, {digit}, "]" ;
+              parameter = "[", digit, {digit}, "]" ;
         :return:
         """
         if self.symbol is None:
@@ -251,7 +255,7 @@ class Parser:
             self.error_handler.log_error(2, 0)
             self.scanner.print_line_error()
             return False
-        # TODO: device_types or (device_type, paramter) will be passed to devices
+        # TODO: device_types or (device_type, parameter) will be passed to devices
         return True
 
 
@@ -302,7 +306,7 @@ class Parser:
 
         out_pin_arg=None
         # Check the case when the output port needs arguments
-        if self.device_types[out_pin] == "DTYPE":
+        if self.device_types[self.devices_defined[out_pin]][0] == "DTYPE":
             if self.decode() != ".":
                 self.error_handler.log_error(7, 1)
                 self.scanner.print_line_error()
@@ -321,6 +325,7 @@ class Parser:
                 return False
 
             out_pin_arg = self.decode()
+            self.out_ports.append((out_pin,out_pin_arg))
             self.next_symbol()
             if self.symbol is None:
                 self.error_handler.log_error(1, 1)
@@ -350,7 +355,6 @@ class Parser:
         elif self.decode()!=".":
             self.error_handler.log_error(6, 1)
             return False
-        in_pin_arg = None
 
         self.next_symbol()
         if self.symbol is None:
@@ -363,7 +367,7 @@ class Parser:
             return False
 
         # Check the case when the input port needs arguments
-        if self.device_types[in_pin] == "DTYPE":
+        if self.device_types[self.device_types[self.devices_defined[in_pin]][0]] == "DTYPE":
             in_pin_arg = self.decode()
             if in_pin_arg not in {"DATA", "CLK", "SET", "CLEAR"}:
                 self.error_handler.log_error(8,1)
@@ -480,6 +484,7 @@ class Parser:
 
 
     def parse_monitors(self)->bool:
+        """
         # ----Parse Monitors----
         while self.symbol.type != "EOF":  # Read END
             if self.symbol.type != "NAME":
@@ -492,6 +497,89 @@ class Parser:
                 break
             self.symbol = self.scanner.get_symbol()
 
+        :return:
+        """
+        if self.symbol is None:
+            self.error_handler.log_error(0,2)
+            self.scanner.print_line_error()
+            return False
+        elif not self.detect("MONITORS",self.scanner.KEYWORD):
+            self.error_handler.log_error(7,2)
+            self.scanner.print_line_error()
+
+        self.next_symbol()
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
+            return False
+
+        elif self.decode()!=":":
+            self.error_handler.log_error(2,0)
+            self.scanner.print_line_error()
+            return False
+
+        self.next_symbol()
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,2)
+            self.scanner.print_line_error()
+            return False
+
+        monitor = self.decode()
+
+        if monitor not in self.out_ports:
+            self.error_handler.log_error(9,2)
+            self.scanner.print_line_error()
+            return False
+        self.monitors_defined.append(monitor)
+
+        self.next_symbol()
+
+        if self.symbol is None:
+            self.error_handler.log_error(1,2)
+            self.scanner.print_line_error()
+            return False
+
+        elif self.symbol.type != self.scanner.PUNCT:
+            self.error_handler.log_error(1, 2)
+            self.scanner.print_line_error()
+            return False
+
+        # Iterate over all possible monitor points(output ports of devices)
+        while self.decode() == ",":
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(7, 2)
+                return False
+            elif self.symbol.type != self.scanner.NAME:
+                self.error_handler.log_error(5, 2)
+                self.scanner.print_line_error()
+                return False
+
+            monitor = self.decode()
+            if monitor not in self.out_ports:
+                self.error_handler.log_error(9, 2)
+                self.scanner.print_line_error()
+                return False
+            self.monitors_defined.append(monitor)
+
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
+                return False
+            elif self.symbol != self.scanner.PUNCT:
+                self.error_handler.log_error(5, 0)
+                self.scanner.print_line_error()
+                return False
+
+        if not self.detect(";",self.scanner.PUNCT):
+            self.error_handler.log_error(5, 0)
+            self.scanner.print_line_error()
+            return False
+
+        return True
 
     def parse_network(self)->bool:
         """Parse the circuit definition file."""
@@ -502,6 +590,13 @@ class Parser:
         self.parse_devices()
         self.parse_connections()
         self.parse_monitors()
+
+        self.next_symbol()
+        #Check if EOF is reached
+        if self.symbol is not None:
+            self.error_handler.log_error(10,2)
+            return False
+
         return self.error_handler.error_count == 0
 
 
