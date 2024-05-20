@@ -389,6 +389,16 @@ class Parser:
                 self.scanner.print_line_error()
             in_pin_arg = self.symbol.id
         self.connections_defined.append(((out_pin,out_pin_arg), (in_pin,in_pin_arg)))
+        self.next_symbol()
+        if self.symbol is None:
+            self.error_handler.log_error(1, 1)
+            self.scanner.print_line_error()
+            return False
+        elif not self.detect(";",self.scanner.PUNCT):
+            self.error_handler.log_error(4, 1)
+            self.scanner.print_line_error()
+            return False
+
         return True
 
 
@@ -433,6 +443,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
             self.counter += 1
+
 
     def parse_connections(self)->bool:
 
