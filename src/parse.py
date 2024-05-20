@@ -94,7 +94,10 @@ class Parser:
         self.error_handler= ErrorHandler()
         self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
         self.prev_symbol: Union[Symbol,None] = None
-        self.devices_defined: List = []
+        self.devices_defined: Dict = {}
+        self.device_types: List = []
+        self.left_pointer:int = 0
+        self.counter:int = 0
 
     def decode(self)->Union[str,None]:
         if self.symbol is None:
@@ -128,8 +131,10 @@ class Parser:
             self.error_handler.log_error(5,0)
             self.scanner.print_line_error()
             return False
-        self.devices_defined = [self.decode()]
+        self.devices_defined[self.decode()]=self.counter
+
         self.next_symbol()
+
         if self.symbol is None:
             self.error_handler.log_error(7, 0)
             return False
@@ -147,7 +152,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-            self.devices_defined.append(self.decode())
+            self.devices_defined[self.decode()]=self.counter
 
             self.next_symbol()
             if self.symbol is None:
@@ -226,6 +231,8 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
+            self.device_types.append((device_type,parameter))
+
             self.next_symbol()
             if self.symbol is None:
                 self.error_handler.log_error(1, 0)
@@ -236,16 +243,12 @@ class Parser:
             self.error_handler.log_error(2, 0)
             self.scanner.print_line_error()
             return False
-        # TODO: device_type or (device_type, paramter) will be passed to devices
+        # TODO: device_types or (device_type, paramter) will be passed to devices
         return True
 
 
     def _connection_def(self):
         """
-
-        if self.symbol.type != "NAME":
-            self.scanner.print_line_error()
-            return False
 
         self.symbol = self.scanner.get_symbol()
         if self.symbol.type != "GREATER":
@@ -276,6 +279,42 @@ class Parser:
             self.error_handler.log_error(1,0)
             self.scanner.print_line_error()
             return False
+        #Check the device is defined
+        out_pin = self.decode()
+        if out_pin not in self.devices_defined:
+            self.error_handler.log_error(0,1)
+            self.scanner.print_line_error()
+            return False
+
+        # Check the case when the output port needs arguments
+        if self.decode() == "DTYPE":
+            self.next_symbol()
+            if self.symbol is None:
+                self.error_handler.log_error(1, 1)
+                self.scanner.print_line_error()
+                return False
+            elif self.decode() != ".":
+                self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
+                return False
+            self.next_symbol()
+
+            if self.symbol is None:
+                self.error_handler.log_error(1, 1)
+                self.scanner.print_line_error()
+                return False
+
+            if self.decode() not in {"Q","QBAR"}:
+                self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
+                return False
+
+            out_pin_arg = self.decode()
+
+
+
+
+
 
 
     def parse_devices(self)->bool:
@@ -318,6 +357,7 @@ class Parser:
                 self.error_handler.log_error(3,0)
                 self.scanner.print_line_error()
                 return False
+            self.counter += 1
 
     def parse_connections(self)->bool:
 
@@ -341,6 +381,7 @@ class Parser:
 
         while True:
             self.next_symbol()
+
             if self.symbol is None:  #Unexpected EOF
                 self.error_handler.log_error(3,0)
                 self.scanner.print_line_error()
