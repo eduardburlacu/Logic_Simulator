@@ -247,7 +247,6 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
-        
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
@@ -259,6 +258,7 @@ class Gui(wx.Frame):
 
         # List to display added options
         self.added_list = wx.ListBox(self, wx.ID_ANY)
+        self.added_list.Bind(wx.EVT_LISTBOX, self.on_listbox_selection)
         
         # Create the list control for items with on/off states
         self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
@@ -274,12 +274,10 @@ class Gui(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
-        self.continue_button.Bind(wx.EVT_BUTTON,
-											self.on_continue_button)
+        self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.add_button.Bind(wx.EVT_BUTTON, self.on_add_button)
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_list_item_activated)
-        self.added_list.Bind(wx.EVT_LISTBOX, self.on_listbox_selection)
 		
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -302,7 +300,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
         
-        # ---Monitors
+        # ---Monitors with Dropdown List and Added List
         side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
         dropdown_sizer.Add(self.dropdown, 1, wx.EXPAND | wx.ALL, 10)
         dropdown_sizer.Add(self.added_list, 1, wx.EXPAND | wx.ALL, 10)
@@ -342,13 +340,20 @@ class Gui(wx.Frame):
 
     def on_remove_button(self, event):
         """Handle the event when the user clicks the remove button."""
-        text = "Remove button pressed."
-        self.canvas.render(text)
+        selection = self.added_list.GetSelection()
+        if selection != wx.NOT_FOUND:
+            item = self.added_list.GetString(selection)
+            self.added_list.Delete(selection)
+            text = f"Removed '{item}' from the list."
+            self.canvas.render(text)
 
     def on_add_button(self, event):
         """Handle the event when the user clicks the add button."""
-        text = "Add button pressed."
-        self.canvas.render(text)
+        selection = self.dropdown.GetStringSelection()
+        if selection and selection not in self.added_list.GetItems():
+            self.added_list.Append(selection)
+            text = f"Added '{selection}' to the list."
+            self.canvas.render(text)
 
     def on_list_item_activated(self, event):
         """Handle the event when a list item is activated (double-clicked)."""
