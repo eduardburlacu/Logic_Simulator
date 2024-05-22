@@ -16,6 +16,7 @@ from monitors import Monitors
 from network import Network
 import logging
 from typing import Optional,Union, Dict, List, Tuple
+from custom_errors import SemanticErrorsC, SyntaxErrorsC
 
 class ErrorHandler:
     def __init__(self):
