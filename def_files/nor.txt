@@ -1,0 +1,9 @@
+DEVICES:
+    N1 = NOR[2] ;
+    C1 = CLOCK[5];
+    C2 = CLOCK[3];
+CONNECTIONS:
+    C1 > N1.I1;
+    C2 > N1.I2;
+MONITORS:
+    N1;

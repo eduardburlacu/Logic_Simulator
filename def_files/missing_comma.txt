@@ -1,0 +1,2 @@
+DEVICE:
+    GATE1 GATE2 = NAND[2];

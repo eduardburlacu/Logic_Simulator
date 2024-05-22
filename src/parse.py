@@ -43,22 +43,25 @@ class ErrorHandler:
             raise ValueError("Error code must be an integer")
         self.error_code_map[error_code] = error_msg
 
-    def log_error(self, error_code:int, idx:int,*args,**kwargs):
+    def log_error(self, error_code:int, idx:int, *args,**kwargs):
         """
         Handles an error by logging it.
         Args:
             error_code (int): The error code to log.
             idx (int): One element of {0,1,2}. Encodes if the error is produced
                        in DEVICES, CONNECTIONS, respectively MONITORS
+            s (Scanner): The scanner of the parser
             *args: Additional arguments to be logged with the error message.
             **kwargs: Additional keyword arguments to be logged with the error message.
         """
-        if error_code not in self.error_code_map:
-            self.logger.error(f"Unknown error code: {error_code}")
+        print(f"Error encountered: {error_code}, {idx}")
+        #if error_code not in self.error_code_map:
+        #    self.logger.error(f"Unknown error code: {error_code}")
 
-        error_message = self.error_code_map[error_code].format(*args, **kwargs)
-        self.logger.error(error_message)
+        #error_message = self.error_code_map[error_code].format(*args, **kwargs)
+        #self.logger.error(error_message)
         self.error_count[idx] += 1
+
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -174,20 +177,24 @@ class Parser:
         if dev_name in self.devices_defined:
             ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
             self.error_handler.log_error(11,0)
+            self.scanner.print_line_error()
 
         self.devices_defined[dev_name] = self.counter
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
-        elif self.symbol != self.scanner.PUNCT:
+        elif self.symbol.type != self.scanner.PUNCT:
             self.error_handler.log_error(5,0)
+            self.scanner.print_line_error()
             return False
 
         while self.decode() == ",":
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             elif self.symbol.type != self.scanner.NAME:
@@ -199,11 +206,13 @@ class Parser:
             if dev_name in self.devices_defined:
                 ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
                 self.error_handler.log_error(11, 0)
+                self.scanner.print_line_error()
 
             self.devices_defined[dev_name] = self.counter
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             elif self.symbol != self.scanner.PUNCT:
@@ -216,11 +225,8 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
-        if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
-            return None
-
         return True
+
     def _device_type(self) ->Union[bool,None]:
         """
         EBNF:
@@ -237,12 +243,14 @@ class Parser:
 
         if self.symbol.type != self.scanner.DEVICE:
             self.error_handler.log_error(5,0)
+            self.scanner.print_line_error()
             return False
 
         device_type = self.decode()
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         parameter = None
@@ -251,13 +259,14 @@ class Parser:
 
             if self.decode()!="[":
                 self.error_handler.log_error(6,0)
+                self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
                 return None
 
-            elif self.symbol != self.scanner.NUMBER:
+            elif self.symbol.type != self.scanner.NUMBER:
                 self.error_handler.log_error(5, 0)
                 self.scanner.print_line_error()
                 return False
@@ -266,6 +275,7 @@ class Parser:
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             elif self.decode()!="]":
@@ -273,16 +283,15 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-            self.device_types.append((device_type,parameter))
-
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
         self.device_types.append((device_type, parameter))
-
         if self.decode() != ";":
             self.error_handler.log_error(2, 0)
+            self.scanner.print_line_error()
             return False
 
         return True
@@ -290,7 +299,7 @@ class Parser:
         """
         EBNF:
         device_def = device_name, {",", device_name}, "=", device_type, ";" ;
-                    <-------------- _device_name ------->  <--_device_type-->
+                    <-------------- _device_name ------->  <-_device_type->
         :return:
             -True if device definition is successful
             -False for unexpected keyword
@@ -300,25 +309,31 @@ class Parser:
         name_check = self._device_name()
         if name_check is None: #unexpected EOF
             self.error_handler.log_error(7,0)
+            self.scanner.print_line_error()
             return None
         elif not name_check: #unexpected keyword
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         type_check = self._device_type()
 
         if type_check is None: #unexpected EOF
             self.error_handler.log_error(7,0)
+            self.scanner.print_line_error()
             return None
         elif not type_check: #unexpected keyword
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return False
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         return True
@@ -331,25 +346,31 @@ class Parser:
             -False: If there is an error
             -None: If unexpected EOF
         """
+
         # Check for EOF
-        if not self.next_symbol():
+        if self.symbol is None:
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
         # Handle the case when the start word is not DEVICES
         elif not self.detect("DEVICES", self.scanner.KEYWORD):
             self.error_handler.log_error(1,0)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         elif self.decode()!=":":
             self.error_handler.log_error(2,0)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         self.counter = 0
@@ -358,19 +379,23 @@ class Parser:
 
         if line_def is None: # Unexpected EOF
             self.error_handler.log_error(7,0)
+            self.scanner.print_line_error()
             return None
 
         elif not line_def: #If there are errors, try the next line
             next_line_def = self.next_line()
             if next_line_def is None: # flag the eof
                 self.error_handler.log_error(3,0)
+                self.scanner.print_line_error()
                 return None
             elif not next_line_def: # unexpected keyword encountered
                 self.error_handler.log_error(4,0)
+                self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
         while not self.detect("CONNECTIONS", self.scanner.KEYWORD):
@@ -379,6 +404,7 @@ class Parser:
 
             if line_def is None:  # Unexpected EOF
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             elif not line_def: # Unexpected keyword
@@ -386,13 +412,16 @@ class Parser:
 
                 if next_line_def is None:  # flag the eof
                     self.error_handler.log_error(3, 0)
+                    self.scanner.print_line_error()
                     return None
                 elif not next_line_def:  # unexpected keyword encountered
                     self.error_handler.log_error(4, 0)
+                    self.scanner.print_line_error()
                     return False
 
                 if not self.next_symbol():
                     self.error_handler.log_error(7, 0)
+                    self.scanner.print_line_error()
                     return None
 
             self.counter += 1
@@ -410,6 +439,7 @@ class Parser:
 
         if self.symbol.type != self.scanner.NAME:
             self.error_handler.log_error(1,1)
+            self.scanner.print_line_error()
             return False
 
         #Check the device is defined
@@ -418,10 +448,12 @@ class Parser:
         #TODO SEMANTIC ERROR
         if out_pin not in self.devices_defined:
             self.error_handler.log_error(0,1)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 1)
+            self.scanner.print_line_error()
             return None
 
         out_pin_arg=None
@@ -429,50 +461,61 @@ class Parser:
         if self.device_types[self.devices_defined[out_pin]][0] == "DTYPE":
             if self.decode() != ".":
                 self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             if not( self.decode() in {"Q","QBAR"} and self.symbol.type==self.scanner.KEYWORD):
                 self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
                 return False
 
             out_pin_arg = self.decode()
             self.out_ports.append((out_pin,out_pin_arg))
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
         if self.decode()!=">":
             self.error_handler.log_error(6,1)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         in_pin = self.decode()
 
         if in_pin not in self.devices_defined:
             self.error_handler.log_error(0,1)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         elif self.decode()!=".":
             self.error_handler.log_error(6, 1)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 2)
+            self.scanner.print_line_error()
             return None
 
         elif self.symbol.type != self.scanner.KEYWORD:
             self.error_handler.log_error(4, 1)
+            self.scanner.print_line_error()
             return False
 
         # Check the case when the input port needs arguments
@@ -485,13 +528,16 @@ class Parser:
         else:
             if not self.detect("I", self.scanner.KEYWORD):
                 self.error_handler.log_error(3,1)
+                self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 1)
+                self.scanner.print_line_error()
                 return None
             elif self.symbol.type != self.scanner.NUMBER:
                 self.error_handler.log_error(4,1)
+                self.scanner.print_line_error()
                 return False
 
             in_pin_arg = self.symbol.id
@@ -500,6 +546,7 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         elif not self.detect(";",self.scanner.PUNCT):
@@ -509,6 +556,7 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 1)
+            self.scanner.print_line_error()
             return None
 
         return True
@@ -529,6 +577,7 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         elif self.decode()!=":":
@@ -538,6 +587,7 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
@@ -549,14 +599,17 @@ class Parser:
                 next_line_def = self.next_line()
                 if next_line_def is None:  # flag the eof
                     self.error_handler.log_error(3, 1)
+                    self.scanner.print_line_error()
                     return None
 
                 elif not next_line_def:  # unexpected keyword encountered
                     self.error_handler.log_error(4, 1)
+                    self.scanner.print_line_error()
                     return False
 
                 if not self.next_symbol():
                     self.error_handler.log_error(7, 1)
+                    self.scanner.print_line_error()
                     return None
 
         return True
@@ -578,20 +631,24 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 2)
+            self.scanner.print_line_error()
             return None
 
         elif self.decode() != ":":
             self.error_handler.log_error(2,2)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return None
 
         monitor = self.decode()
 
         if monitor not in self.devices_defined:
             self.error_handler.log_error(9,2)
+            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
@@ -607,13 +664,16 @@ class Parser:
         if self.decode() == ".":
             if not self.next_symbol():
                 self.error_handler.log_error(7, 2)
+                self.scanner.print_line_error()
                 return None
             param = self.decode()
             if param not in {"Q","QBAR"}:
                 self.error_handler.log_error(3, 2)
+                self.scanner.print_line_error()
                 return False
             if not self.next_symbol():
                 self.error_handler.log_error(7, 2)
+                self.scanner.print_line_error()
                 return None
             elif self.symbol.type != self.scanner.PUNCT:
                 self.error_handler.log_error(1, 2)
@@ -628,16 +688,19 @@ class Parser:
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             monitor = self.decode()
 
             if monitor not in self.devices_defined:
                 self.error_handler.log_error(9, 2)
+                self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
             elif self.symbol.type != self.scanner.PUNCT:
@@ -649,13 +712,16 @@ class Parser:
             if self.decode() == ".":
                 if not self.next_symbol():
                     self.error_handler.log_error(7, 2)
+                    self.scanner.print_line_error()
                     return None
                 param = self.decode()
                 if param not in {"Q","QBAR"}:
                     self.error_handler.log_error(3, 2)
+                    self.scanner.print_line_error()
                     return False
                 if not self.next_symbol():
                     self.error_handler.log_error(7, 2)
+                    self.scanner.print_line_error()
                     return None
                 elif self.symbol.type != self.scanner.PUNCT:
                     self.error_handler.log_error(1, 2)
@@ -665,6 +731,7 @@ class Parser:
             self.monitors_defined.append((monitor,param))
             if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                self.scanner.print_line_error()
                 return None
 
         if not self.detect(";",self.scanner.PUNCT):
@@ -697,9 +764,11 @@ class Parser:
 
         if self.next_symbol():
             self.error_handler.log_error(7, 0)
+            self.scanner.print_line_error()
             return False
 
         return True
+
     def create_device(self):
         pass
     def create_connection(self):

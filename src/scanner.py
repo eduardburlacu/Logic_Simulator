@@ -203,7 +203,7 @@ class Scanner:
             # not a valid character, raise error
             self.print_line_error()
             raise SyntaxError(f"Character {self.current_character} not valid.")
-        print(symbol.type,symbol.id)
+
         return symbol
 
     def get_all_symbols(self, cache=False):
@@ -211,6 +211,7 @@ class Scanner:
         symbols = []
         while True:
             symbol = self.get_symbol()
+            print(self.decode(symbol), symbol.type)
             symbols.append(symbol)
             if symbols[-1].type == self.EOF:
                 break

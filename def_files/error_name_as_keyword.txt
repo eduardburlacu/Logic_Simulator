@@ -1,0 +1,3 @@
+DEVICES:
+
+    I = NAND [ 2    ]      ;

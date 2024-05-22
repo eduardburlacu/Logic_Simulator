@@ -1,0 +1,6 @@
+DEVICES:
+    SW = SWITCH[1];
+CONNECTIONS:
+
+MONITORS:
+    SW;

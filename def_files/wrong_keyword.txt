@@ -1,0 +1,2 @@
+DEVICE:
+    GATE1 = I [2] ;

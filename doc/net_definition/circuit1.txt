@@ -24,5 +24,3 @@ CONNECTIONS:
 
 MONITORS:
 	A, flopflip.Q, flopflip.QBAR ;
-
-END

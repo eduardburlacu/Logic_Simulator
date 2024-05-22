@@ -1,0 +1,11 @@
+DEVICES:
+    G1 = NOR[2];
+
+    SW1 = SWITCH[0];
+
+    SW2 = SWITCH[1];
+
+CONNECTIONS:
+    G1.I1 > SW1;
+
+    G2.I1 > SW2;
