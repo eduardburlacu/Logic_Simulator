@@ -1,4 +1,4 @@
-network = devices, connections, [monitors], "END" ;
+network = devices, connections, [monitors];
 
 devices = "DEVICES", ":" , device_def , { device_def } ;
 
@@ -13,7 +13,7 @@ device type = ("CLOCK",parameter) | ("SWITCH", parameter) | ("AND",parameter) |
 parameter = "[", digit, {digit}, "]" ;
 
 
-connections = "CONNECTIONS", connection_def, {connection_def}, ";" ;
+connections = "CONNECTIONS", ":" , {connection_def}, ";" ;
 
 connection_def = (out_port, ">", in_port), ";" ;
 
@@ -23,9 +23,9 @@ in_port = device_name , "." , ( "DATA" | "CLK" | "SET" | "CLEAR" | ( "I", digit,
 out_port = device_name , [".",("Q"|"QBAR")] ;
 
 
-monitors = "MONITOR", ":", monitor_def ;
+monitors = "MONITOR", ":", {monitor_def} ;
 
-monitor_def = output_port, {output_port} ;
+monitor_def = out_port, {out_port} ;
 
 
 alpha =  "A" | "B" | "C" | "D" | "E" | "F" | "G"

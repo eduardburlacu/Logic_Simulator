@@ -86,6 +86,7 @@ class Parser:
     def __init__(self, names, devices, network, monitors, scanner):
         """Initialise constants."""
         self.names: Names = names
+
         self.devices: Devices = devices
         self.network: Network = network
         self.monitors: Monitors = monitors
@@ -93,6 +94,7 @@ class Parser:
         self.scanner.file.seek(0)
 
         self.error_handler= ErrorHandler()
+
         self.symbol: Union[Symbol,None] = self.scanner.get_symbol()
         self.prev_symbol: Union[Symbol,None] = None
 
@@ -109,117 +111,153 @@ class Parser:
         if self.symbol is None:
             return None
         return self.scanner.decode(self.symbol)
-
     def detect(self, string: str, type_sym: str)->bool:
         if self.decode() != string:
             return False
-        if self.symbol.type == type_sym:
-            return True
-        return False
-
-    def next_symbol(self):
+        if self.symbol.type != type_sym:
+            return False
+        return True
+    def next_symbol(self)->bool:
+        # Returns False if EOF symbol is detected and True otherwise
         if self.symbol.type == self.scanner.EOF:
             self.prev_symbol = self.symbol
             self.symbol = None
+            return False
         else:
             self.prev_symbol = self.symbol
             self.symbol = self.scanner.get_symbol()
+            return True
+    def next_line(self):
+        """
+        Returns:
+            - True: next line successfully reached
+            - False: there was an unexpected keyword
+            - None: there was an unexpected EOF
+        """
+        #Skip to the following line, abort parsing in this line
+        if self.symbol is None:
+            return None
 
-    def _device_name(self)->bool:
+        while not self.detect(";", self.scanner.PUNCT):
+            if self.symbol.type == self.scanner.KEYWORD:
+                return False
+            if not self.next_symbol(): #Check EOF char
+                return None
+        return True
+    def next_block(self):
+        """
+        Returns:
+            - True: next line successfully reached
+            - None: there was an unexpected EOF
+        """
+        # Skip to the next block, abort parsing in this block
+        if self.symbol is None:
+            return None
+        while self.symbol.type != self.scanner.KEYWORD:
+            if not self.next_symbol():
+                return None
+        return True
+    def _device_name(self)->Union[bool,None]:
         """
         EBNF: (alpha | "_"), {alpha | digit | "_" } ;
+        :return:
+            - True for successful parsing
+            - False for unexpected keyword
+            - None for unexpected EOF
         """
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
-        elif self.symbol.type != self.scanner.NAME:
+
+        if self.symbol.type != self.scanner.NAME:
             self.error_handler.log_error(5,0)
             self.scanner.print_line_error()
             return False
-        self.devices_defined[self.decode()]=self.counter
 
-        self.next_symbol()
+        dev_name = self.decode()
+        if dev_name in self.devices_defined:
+            ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
+            self.error_handler.log_error(11,0)
 
-        if self.symbol is None:
+        self.devices_defined[dev_name] = self.counter
+
+        if not self.next_symbol():
             self.error_handler.log_error(7, 0)
-            return False
+            return None
+
         elif self.symbol != self.scanner.PUNCT:
             self.error_handler.log_error(5,0)
             return False
 
         while self.decode() == ",":
-            self.next_symbol()
-            if self.symbol is None:
+            if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
-                return False
+                return None
+
             elif self.symbol.type != self.scanner.NAME:
                 self.error_handler.log_error(5, 0)
                 self.scanner.print_line_error()
                 return False
 
-            self.devices_defined[self.decode()]=self.counter
+            dev_name = self.decode()
+            if dev_name in self.devices_defined:
+                ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
+                self.error_handler.log_error(11, 0)
 
-            self.next_symbol()
-            if self.symbol is None:
+            self.devices_defined[dev_name] = self.counter
+
+            if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
-                self.scanner.print_line_error()
-                return False
+                return None
+
             elif self.symbol != self.scanner.PUNCT:
                 self.error_handler.log_error(5, 0)
                 self.scanner.print_line_error()
                 return False
 
-        if self.decode() != "=":
+        if not self.detect("=",self.scanner.PUNCT):
             self.error_handler.log_error(5, 0)
             self.scanner.print_line_error()
             return False
-        # TODO: when integrating devices, the list devices_defined can be used to interface with those
+
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
         return True
-
-
-    def _device_type(self) ->bool:
+    def _device_type(self) ->Union[bool,None]:
         """
-        EBNF: device type = ("CLOCK",parameter) | ("SWITCH", parameter) |
-                            ("AND",parameter) | ("NAND", parameter) |
-                            ("OR", parameter) | ("NOR", parameter) |
-                             "XOR" | "DTYPE" ;
+        EBNF:
+        device type = ("CLOCK",parameter) | ("SWITCH", parameter) |
+                      ("AND", parameter) | ("NAND", parameter) |
+                      ("OR", parameter) | ("NOR", parameter) |
+                       "XOR" | "DTYPE" ;
               parameter = "[", digit, {digit}, "]" ;
         :return:
+            - True for successful parsing
+            - False for unexpected keyword
+            - None for unexpected EOF
         """
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
 
-        elif self.symbol.type != self.scanner.DEVICE:
+        if self.symbol.type != self.scanner.DEVICE:
             self.error_handler.log_error(5,0)
-            self.scanner.print_line_error()
             return False
 
         device_type = self.decode()
 
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
         parameter = None
 
-        if device_type not in {"XOR","DTYPE"}: # PARAMETER REQUIRED
+        if device_type in {"CLOCK","SWITCH","AND","NAND","OR","NOR"}: # PARAMETER REQUIRED
 
             if self.decode()!="[":
                 self.error_handler.log_error(6,0)
                 return False
 
-            self.next_symbol()
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
-            if self.symbol is None:
-                self.error_handler.log_error(1, 0)
-                self.scanner.print_line_error()
-                return False
             elif self.symbol != self.scanner.NUMBER:
                 self.error_handler.log_error(5, 0)
                 self.scanner.print_line_error()
@@ -227,12 +265,9 @@ class Parser:
 
             parameter = self.symbol.id
 
-            self.next_symbol()
-
-            if self.symbol is None:
-                self.error_handler.log_error(1, 0)
-                self.scanner.print_line_error()
-                return False
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
             elif self.decode()!="]":
                 self.error_handler.log_error(1, 0)
@@ -241,128 +276,204 @@ class Parser:
 
             self.device_types.append((device_type,parameter))
 
-            self.next_symbol()
-
-            if self.symbol is None:
-                self.error_handler.log_error(1, 0)
-                self.scanner.print_line_error()
-                return False
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
         self.device_types.append((device_type, parameter))
 
         if self.decode() != ";":
             self.error_handler.log_error(2, 0)
-            self.scanner.print_line_error()
             return False
-        # TODO: device_types or (device_type, parameter) will be passed to devices
+
         return True
-
-
-    def _connection_def(self):
+    def _device_def(self)->Union[bool,None]:
+        """
+        EBNF:
+        device_def = device_name, {",", device_name}, "=", device_type, ";" ;
+                    <-------------- _device_name ------->  <--_device_type-->
+        :return:
+            -True if device definition is successful
+            -False for unexpected keyword
+            -None for unexpected EOF
         """
 
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type != "GREATER":
-            self.scanner.print_line_error()
+        name_check = self._device_name()
+        if name_check is None: #unexpected EOF
+            self.error_handler.log_error(7,0)
+            return None
+        elif not name_check: #unexpected keyword
+            self.error_handler.log_error(7, 0)
             return False
 
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type != "NAME":
-            self.scanner.print_line_error()
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
+        type_check = self._device_type()
+
+        if type_check is None: #unexpected EOF
+            self.error_handler.log_error(7,0)
+            return None
+        elif not type_check: #unexpected keyword
+            self.error_handler.log_error(7, 0)
+            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
+        return True
+    def parse_devices(self)->Union[bool,None]:
+        """
+        EBNF:
+        devices = "DEVICES", ":" , device_def , { device_def } ;
+        :returns:
+            -True: If there are no errors
+            -False: If there is an error
+            -None: If unexpected EOF
+        """
+        # Check for EOF
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+        # Handle the case when the start word is not DEVICES
+        elif not self.detect("DEVICES", self.scanner.KEYWORD):
+            self.error_handler.log_error(1,0)
             return False
 
-        # TODO NEED TO LOOKUP DEFINED NAMES FROM DEVICES
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type != "I":
-            self.scanner.print_line_error()
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
+        elif self.decode()!=":":
+            self.error_handler.log_error(2,0)
             return False
 
-        self.symbol = self.scanner.get_symbol()
-        if self.symbol.type != "NUMBER":
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
-        # TODO ADD CONNECTION FUNCTION TO CONNECT DEVICES
-        self.symbol = self.scanner.get_symbol()
+        self.counter = 0
+
+        line_def = self._device_def()
+
+        if line_def is None: # Unexpected EOF
+            self.error_handler.log_error(7,0)
+            return None
+
+        elif not line_def: #If there are errors, try the next line
+            next_line_def = self.next_line()
+            if next_line_def is None: # flag the eof
+                self.error_handler.log_error(3,0)
+                return None
+            elif not next_line_def: # unexpected keyword encountered
+                self.error_handler.log_error(4,0)
+                return False
+
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
+
+        while not self.detect("CONNECTIONS", self.scanner.KEYWORD):
+
+            line_def = self._device_def()
+
+            if line_def is None:  # Unexpected EOF
+                self.error_handler.log_error(7, 0)
+                return None
+
+            elif not line_def: # Unexpected keyword
+                next_line_def = self.next_line()
+
+                if next_line_def is None:  # flag the eof
+                    self.error_handler.log_error(3, 0)
+                    return None
+                elif not next_line_def:  # unexpected keyword encountered
+                    self.error_handler.log_error(4, 0)
+                    return False
+
+                if not self.next_symbol():
+                    self.error_handler.log_error(7, 0)
+                    return None
+
+            self.counter += 1
+
+        return True
+    def _connection_def(self)-> Union[bool,None]:
+        """
+        EBNF:
+        connection_def = (out_port, ">", in_port), ";" ;
+        in_port = device_name , "." , ( "DATA" | "CLK" | "SET" | "CLEAR" | ( "I", digit, {digit} )  ) ;
+        out_port = device_name , [".",("Q"|"QBAR")] ;
+
+        :return:
         """
 
         if self.symbol.type != self.scanner.NAME:
             self.error_handler.log_error(1,1)
-            self.scanner.print_line_error()
-            return False
-        #Check the device is defined
-        out_pin = self.decode()
-        if out_pin not in self.devices_defined:
-            self.error_handler.log_error(0,1)
-            self.scanner.print_line_error()
             return False
 
-        self.next_symbol()
-        if self.symbol is None:
-            self.error_handler.log_error(1, 1)
-            self.scanner.print_line_error()
+        #Check the device is defined
+        out_pin = self.decode()
+
+        #TODO SEMANTIC ERROR
+        if out_pin not in self.devices_defined:
+            self.error_handler.log_error(0,1)
             return False
+
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 1)
+            return None
 
         out_pin_arg=None
         # Check the case when the output port needs arguments
         if self.device_types[self.devices_defined[out_pin]][0] == "DTYPE":
             if self.decode() != ".":
                 self.error_handler.log_error(7, 1)
-                self.scanner.print_line_error()
                 return False
 
-            self.next_symbol()
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
-            if self.symbol is None:
-                self.error_handler.log_error(1, 1)
-                self.scanner.print_line_error()
-                return False
-
-            if self.decode() not in {"Q","QBAR"} and self.symbol.type==self.scanner.KEYWORD:
+            if not( self.decode() in {"Q","QBAR"} and self.symbol.type==self.scanner.KEYWORD):
                 self.error_handler.log_error(7, 1)
-                self.scanner.print_line_error()
                 return False
 
             out_pin_arg = self.decode()
             self.out_ports.append((out_pin,out_pin_arg))
-            self.next_symbol()
-            if self.symbol is None:
-                self.error_handler.log_error(1, 1)
-                self.scanner.print_line_error()
-                return False
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
         if self.decode()!=">":
             self.error_handler.log_error(6,1)
             return False
 
-        self.next_symbol()
-        if self.symbol is None:
-            self.error_handler.log_error(1, 1)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
         in_pin = self.decode()
+
         if in_pin not in self.devices_defined:
             self.error_handler.log_error(0,1)
-            self.scanner.print_line_error()
             return False
 
-        self.next_symbol()
-        if self.symbol is None:
-            self.error_handler.log_error(1, 1)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
         elif self.decode()!=".":
             self.error_handler.log_error(6, 1)
             return False
 
-        self.next_symbol()
-        if self.symbol is None:
-            self.error_handler.log_error(1, 1)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 2)
+            return None
+
         elif self.symbol.type != self.scanner.KEYWORD:
             self.error_handler.log_error(4, 1)
-            self.scanner.print_line_error()
             return False
 
         # Check the case when the input port needs arguments
@@ -373,205 +484,189 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
         else:
-            self.next_symbol()
-            if self.symbol is None:
-                self.error_handler.log_error(1, 1)
-                self.scanner.print_line_error()
+            if not self.detect("I", self.scanner.KEYWORD):
+                self.error_handler.log_error(3,1)
                 return False
-            elif not self.detect("I",self.scanner.KEYWORD):
-                self.error_handler.log_error(4, 1)
-                self.scanner.print_line_error()
-                return False
-            self.next_symbol()
-            if self.symbol is None:
-                self.error_handler.log_error(1, 1)
-                self.scanner.print_line_error()
-                return False
+
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 1)
+                return None
             elif self.symbol.type != self.scanner.NUMBER:
                 self.error_handler.log_error(4,1)
-                self.scanner.print_line_error()
+                return False
+
             in_pin_arg = self.symbol.id
+
         self.connections_defined.append(((out_pin,out_pin_arg), (in_pin,in_pin_arg)))
-        self.next_symbol()
-        if self.symbol is None:
-            self.error_handler.log_error(1, 1)
-            self.scanner.print_line_error()
-            return False
+
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
+
         elif not self.detect(";",self.scanner.PUNCT):
             self.error_handler.log_error(4, 1)
             self.scanner.print_line_error()
             return False
 
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 1)
+            return None
+
         return True
-
-
-    def parse_devices(self)->bool:
+    def parse_connections(self)->Union[bool,None]:
         """
         EBNF:
-        devices = "DEVICES", ":" , device_def , { device_def } ;
-        device_def = device_name, {",", device_name}, "=", device_type, ";" ;
+        connections = "CONNECTIONS", ":", {connection_def}, ";" ;
         :return:
+            -True: If there are no errors
+            -False: If there is an error
+            -None: If unexpected EOF
         """
-        #Handle the case when the start word is not DEVICES
-        if not self.detect("DEVICES",self.scanner.KEYWORD):
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
-
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
-
-        elif self.decode()!=":":
-            self.error_handler.log_error(2,0)
-            self.scanner.print_line_error()
-
-        self.next_symbol()
-
-        while True:
-
-            self._device_name()
-            self.next_symbol()
-            self._device_type()
-            self.next_symbol()
-
-            if self.detect("CONNECTIONS", self.scanner.KEYWORD):
-                return self.error_handler.error_count[0]==0
-
-            elif self.symbol is None:  #Unexpected EOF
-                self.error_handler.log_error(3,0)
-                self.scanner.print_line_error()
-                return False
-            self.counter += 1
-
-
-    def parse_connections(self)->bool:
-
         #Handle the case when the start word is not CONNECTIONS
         if not self.detect( "CONNECTIONS",self.scanner.KEYWORD):
             self.error_handler.log_error(1,0)
             self.scanner.print_line_error()
             return False
 
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
         elif self.decode()!=":":
             self.error_handler.log_error(2,0)
             self.scanner.print_line_error()
             return False
 
-        while True:
-            self.next_symbol()
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
-            if self.symbol is None:  #Unexpected EOF
-                self.error_handler.log_error(3,0)
-                self.scanner.print_line_error()
-                return False
+        while not self.detect("MONITORS", self.scanner.KEYWORD):
+            con = self._connection_def()
+            if con is None:
+                return None
 
-            elif self.detect("MONITORS", self.scanner.KEYWORD):
-                return self.error_handler.error_count[0]==0
+            elif not con:  # If there are errors, try the next line
+                next_line_def = self.next_line()
+                if next_line_def is None:  # flag the eof
+                    self.error_handler.log_error(3, 1)
+                    return None
 
-            self._connection_def()
+                elif not next_line_def:  # unexpected keyword encountered
+                    self.error_handler.log_error(4, 1)
+                    return False
 
+                if not self.next_symbol():
+                    self.error_handler.log_error(7, 1)
+                    return None
 
-    def parse_monitors(self)->bool:
+        return True
+    def parse_monitors(self)->Union[bool,None]:
         """
-        # ----Parse Monitors----
-        while self.symbol.type != "EOF":  # Read END
-            if self.symbol.type != "NAME":
-                self.scanner.print_line_error()
-                return False
-
-            while self.symbol != "NAME":  # Read until names run out
-                self.symbol = self.scanner.get_symbol()
-                # TODO: ADD MEMORY FUNCTION TO ASSIGN  MANY NAMES TO ONE DEVICE TYPE
-                break
-            self.symbol = self.scanner.get_symbol()
+        EBNF:
+        monitors = "MONITOR", ":", {monitor_def} ;
+        monitor_def = output_port, {output_port} ;
 
         :return:
         """
         if self.symbol is None:
-            self.error_handler.log_error(0,2)
-            self.scanner.print_line_error()
-            return False
+            return True
+
         elif not self.detect("MONITORS",self.scanner.KEYWORD):
             self.error_handler.log_error(7,2)
             self.scanner.print_line_error()
-
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,0)
-            self.scanner.print_line_error()
             return False
 
-        elif self.decode()!=":":
-            self.error_handler.log_error(2,0)
-            self.scanner.print_line_error()
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 2)
+            return None
+
+        elif self.decode() != ":":
+            self.error_handler.log_error(2,2)
             return False
 
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,2)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
         monitor = self.decode()
 
-        if monitor not in self.out_ports:
+        if monitor not in self.devices_defined:
             self.error_handler.log_error(9,2)
-            self.scanner.print_line_error()
             return False
-        self.monitors_defined.append(monitor)
 
-        self.next_symbol()
-
-        if self.symbol is None:
-            self.error_handler.log_error(1,2)
-            self.scanner.print_line_error()
-            return False
+        if not self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return None
 
         elif self.symbol.type != self.scanner.PUNCT:
             self.error_handler.log_error(1, 2)
             self.scanner.print_line_error()
             return False
 
-        # Iterate over all possible monitor points(output ports of devices)
-        while self.decode() == ",":
-            self.next_symbol()
-            if self.symbol is None:
+        param=None
+        if self.decode() == ".":
+            if not self.next_symbol():
                 self.error_handler.log_error(7, 2)
+                return None
+            param = self.decode()
+            if param not in {"Q","QBAR"}:
+                self.error_handler.log_error(3, 2)
                 return False
-            elif self.symbol.type != self.scanner.NAME:
-                self.error_handler.log_error(5, 2)
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 2)
+                return None
+            elif self.symbol.type != self.scanner.PUNCT:
+                self.error_handler.log_error(1, 2)
                 self.scanner.print_line_error()
                 return False
+
+        self.monitors_defined.append((monitor,param))
+
+
+        # Iterate over all possible monitor points(output ports of devices)
+        while self.detect(",", self.scanner.PUNCT):
+
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
             monitor = self.decode()
-            if monitor not in self.out_ports:
-                self.error_handler.log_error(9, 2)
-                self.scanner.print_line_error()
-                return False
-            self.monitors_defined.append(monitor)
 
-            self.next_symbol()
-            if self.symbol is None:
+            if monitor not in self.devices_defined:
+                self.error_handler.log_error(9, 2)
+                return False
+
+            if not self.next_symbol():
                 self.error_handler.log_error(7, 0)
+                return None
+
+            elif self.symbol.type != self.scanner.PUNCT:
+                self.error_handler.log_error(1, 2)
                 self.scanner.print_line_error()
                 return False
-            elif self.symbol != self.scanner.PUNCT:
-                self.error_handler.log_error(5, 0)
-                self.scanner.print_line_error()
-                return False
+
+            param=None
+            if self.decode() == ".":
+                if not self.next_symbol():
+                    self.error_handler.log_error(7, 2)
+                    return None
+                param = self.decode()
+                if param not in {"Q","QBAR"}:
+                    self.error_handler.log_error(3, 2)
+                    return False
+                if not self.next_symbol():
+                    self.error_handler.log_error(7, 2)
+                    return None
+                elif self.symbol.type != self.scanner.PUNCT:
+                    self.error_handler.log_error(1, 2)
+                    self.scanner.print_line_error()
+                    return False
+
+            self.monitors_defined.append((monitor,param))
+            if not self.next_symbol():
+                self.error_handler.log_error(7, 0)
+                return None
 
         if not self.detect(";",self.scanner.PUNCT):
             self.error_handler.log_error(5, 0)
@@ -579,22 +674,37 @@ class Parser:
             return False
 
         return True
-
     def parse_network(self)->bool:
         """Parse the circuit definition file."""
-        # For now just return True, so that userint and gui can run in the
-        # skeleton code. When complete, should return False when there are
-        # errors in the circuit definition file.
-        self.next_symbol()
-        self.parse_devices()
-        self.parse_connections()
-        self.parse_monitors()
+        parsed_devices = self.parse_devices()
 
-        self.next_symbol()
-        #Check if EOF is reached
-        if self.symbol is not None:
-            self.error_handler.log_error(10,2)
+        if parsed_devices is None:
+            return False
+        elif not parsed_devices:
+            if not self.next_block():
+                return False
+
+        parsed_connections = self.parse_connections()
+
+        if parsed_connections is None:
+            return False
+        elif not parsed_connections:
+            if not self.next_block():
+                return False
+
+        parsed_monitors = self.parse_monitors()
+        if parsed_monitors is not True:
             return False
 
-        return self.error_handler.error_count == 0
+        if self.next_symbol():
+            self.error_handler.log_error(7, 0)
+            return False
+
+        return True
+    def create_device(self):
+        pass
+    def create_connection(self):
+        pass
+    def create_monitor(self):
+        pass
 
