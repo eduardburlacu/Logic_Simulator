@@ -139,7 +139,7 @@ class SemanticErrorsC:
         raise InputNotAssignedError(pos, messageC)
     
     def ClockPeriodZero(pos, messageC = None):
-        raise ValueError(pos, messageC)
+        raise ValueError(messageC + POSITIONS[pos])
     
     def ReferencedBeforeAssigned(pos, messageC = None):
         raise ReferencedBeforeAssignedError(pos, messageC)
