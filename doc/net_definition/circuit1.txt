@@ -17,10 +17,9 @@ CONNECTIONS:
 	input3 > B.I3 ;
 	A > C.I1 ;
 	B > C.I3 ;
-	C > flopflip.DATA ;
-	clock > flopflip.CLK ;
-	set_swi > flopflip.SET ;
-	reset_swi > flopflip.CLEAR ;
-
+	C > flipflop.DATA ;
+	clock > flipflop.CLK ;
+	set_swi > flipflop.SET ;
+	reset_swi > flipflop.CLEAR ;
 MONITORS:
-	A, flopflip.Q, flopflip.QBAR ;
+	A, flipflop.Q, flipflop.QBAR ;

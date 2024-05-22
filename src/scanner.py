@@ -62,7 +62,7 @@ class Scanner:
         """Open specified file and initialise reserved words and IDs."""
         """
         keywords_set = { "DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I" }
-        devices_set = {"CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"}
+        devices_set = {"CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR","DTYPE"}
         """
 
         self.current_character = None

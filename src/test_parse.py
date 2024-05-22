@@ -10,8 +10,8 @@ def scanner():
     return Scanner(
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "circuit1.txt")),
         names = Names(),
-        devices = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR"]),
-        keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
+        devices = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR","DTYPE"]),
+        keywords = Names(["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
         punct= Names([ ",", ".", ":", ";", ">", "[", "]", "=" ])
     )
 
@@ -20,7 +20,7 @@ def scanner_fault():
     return Scanner(
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "test_errors_circuit1.txt")),
         names = Names(),
-        devices = Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"]),
+        devices = Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR","DTYPE"]),
         keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
         punct=Names([",", ".", ":", ">", "[", "]", "="])
     )
@@ -55,7 +55,8 @@ def test_init(scanner):
     )
 
 def test_parse_network(parser):
-    parser.parse_network()
+    check = parser.parse_network()
+    assert check is True
 
 def test_decode_symbols(parser):
     answer = """DEVICES KEYWORD
