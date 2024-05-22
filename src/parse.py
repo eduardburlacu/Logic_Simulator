@@ -60,7 +60,6 @@ class ErrorHandler:
         self.logger.error(error_message)
         self.error_count[idx] += 1
 
-
 class Parser:
     """Parse the definition file and build the logic network.
 
@@ -707,4 +706,3 @@ class Parser:
         pass
     def create_monitor(self):
         pass
-
