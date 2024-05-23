@@ -250,7 +250,8 @@ class Gui(wx.Frame):
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
-        
+        self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
+
         # Dropdown list options
         dropdown_options = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"]
         self.dropdown = wx.ComboBox(self, wx.ID_ANY, choices=dropdown_options, style=wx.CB_READONLY)
@@ -308,6 +309,7 @@ class Gui(wx.Frame):
         side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 10)
         
         # ---Set Switches
+        side_sizer.Add(self.textS, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 10)
 		
         self.SetSizeHints(600, 600)
