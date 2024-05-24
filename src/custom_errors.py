@@ -34,7 +34,52 @@ class ParameterLetterError(Exception):
     """
     Syntax Error Raised when a parameter is a Letter 
     """
-    def __init__(self, pos, message="Syntax Error: Patameter Cannot Be A Letter, in: "):
+    def __init__(self, pos, message="Syntax Error: Parameter Cannot Be A Letter, in: "):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
+class UnexpectedEOFError(Exception):
+    """
+    Syntax Error Raised when a parameter is a Letter 
+    """
+    def __init__(self, pos, message="Syntax Error: Unexpected EOF encountered"):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
+class UnexpectedEOFError(Exception):
+    """
+    Syntax Error Raised when a parameter is a Letter 
+    """
+    def __init__(self, pos, message="Syntax Error: Unexpected EOF encountered, in:"):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
+class InvalidSymbolError(Exception):
+    """
+    Syntax Error Raised when a parameter is a Letter 
+    """
+    def __init__(self, pos, message="Syntax Error: Symbol not valid :"):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
+class UnexpectedKeywordError(Exception):
+    """
+    Syntax Error Raised when a parameter is a Letter 
+    """
+    def __init__(self, pos, message="Syntax Error: Unexpected keyword encountered, in:"):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
+class InvalidPunctError(Exception):
+    """
+    Syntax Error Raised when a parameter is a Letter 
+    """
+    def __init__(self, pos, message="Syntax Error: Punctuation not valid, in :"):
         self.pos = pos
         self.message = message
         super().__init__(self.message + POSITIONS[pos])
@@ -57,6 +102,18 @@ class SyntaxErrorsC():
     
     def ParameterLetter(pos, messageC = None):
         raise ParameterLetterError(pos, messageC)
+    
+    def UnexpectedEOF(pos, messageC = None):
+        raise UnexpectedEOFError(pos, messageC)
+
+    def InvalidSymbol(pos, messageC = None):
+        raise InvalidSymbolError(pos, messageC)
+    
+    def UnexpectedKeyword(pos, messageC = None):
+        raise UnexpectedKeywordError(pos, messageC)
+
+    def InvalidPunct(pos, messageC = None):
+        raise InvalidPunctError(pos, messageC)
 
 
 #Semantic Errors
@@ -125,6 +182,15 @@ class DeviceNotExistError(Exception):
         self.message = message
         super().__init__(self.message + POSITIONS[pos])
 
+class PinNotExistError(Exception):
+    """
+    Semantic Error Raised when a device is called that does not exist 
+    """
+    def __init__(self, pos, message="Semantic Error: Input Pin Does Not Exist, in: "):
+        self.pos = pos
+        self.message = message
+        super().__init__(self.message + POSITIONS[pos])
+
 class SemanticErrorsC:
     """
     Class that contains the different Semantic Errors as methods
@@ -155,3 +221,6 @@ class SemanticErrorsC:
     
     def DeviceNotExist(pos, messageC = None):
         raise DeviceNotExistError(pos, messageC)
+    
+    def PinNotExist(pos, messageC = None):
+        raise PinNotExistError(pos, messageC)

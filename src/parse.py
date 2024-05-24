@@ -44,7 +44,7 @@ class ErrorHandler:
             raise ValueError("Error code must be an integer")
         self.error_code_map[error_code] = error_msg
 
-    def log_error(self, error_code:int, idx:int, *args,**kwargs):
+    def log_error(self, error_type:str, error_code:int, idx:int, *args,**kwargs):
         """
         Handles an error by logging it.
         Args:
@@ -62,7 +62,66 @@ class ErrorHandler:
         #error_message = self.error_code_map[error_code].format(*args, **kwargs)
         #self.logger.error(error_message)
         self.error_count[idx] += 1
-
+        
+        if error_type == "Syn":
+            if error_code == 1:
+                with SyntaxErrorsC.CharNotSupported(idx) as e:
+                    print(e)
+            elif error_code == 2:
+                with SyntaxErrorsC.DigitStartsName(idx) as e:
+                    print(e)
+            elif error_code == 3:
+                with SyntaxErrorsC.MultipleAssignments(idx) as e:
+                    print(e)
+            elif error_code == 4:
+                with SyntaxErrorsC.ParameterLetter(idx) as e:
+                    print(e)
+            elif error_code == 5:
+                with SyntaxErrorsC.UnexpectedEOF(idx) as e:
+                    print(e)
+            elif error_code == 6:
+                with SyntaxErrorsC.InvalidSymbol(idx) as e:
+                    print(e)
+            elif error_code == 7:
+                with SyntaxErrorsC.UnexpectedKeyword(idx) as e:
+                    print(e)
+            elif error_code == 8:
+                with SyntaxErrorsC.InvalidPunct(idx) as e:
+                    print(e)
+            else:
+                raise ValueError("Invalid Error Code for Syntax")
+        if error_type == "Sem":
+            if error_code == 1:
+                with SemanticErrorsC.InputNotAssigned(idx) as e:
+                    print(e)
+            elif error_code == 2:
+                with SemanticErrorsC.InputToSwitchAssigned(idx) as e:
+                    print(e)
+            elif error_code == 3:
+                with SemanticErrorsC.ClockPeriodZero(idx) as e:
+                    print(e)
+            elif error_code == 4:
+                with SemanticErrorsC.ReferencedBeforeAssigned(idx) as e:
+                    print(e)
+            elif error_code == 5:
+                with SemanticErrorsC.AlreadyAssigned(idx) as e:
+                    print(e)
+            elif error_code == 6:
+                with SemanticErrorsC.DeviceNameI(idx) as e:
+                    print(e)
+            elif error_code == 7:
+                with SemanticErrorsC.MonitorOnInput(idx) as e:
+                    print(e)
+            elif error_code == 8:
+                with SemanticErrorsC.DeviceNotExist(idx) as e:
+                    print(e)
+            elif error_code == 9:
+                with SemanticErrorsC.PinNotExist(idx) as e:
+                    print(e)
+            else:
+                raise ValueError("Invalid Error Code for Semantic")
+        else: 
+            raise TypeError("Invalid Error Type")
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -169,36 +228,42 @@ class Parser:
             - None for unexpected EOF
         """
         if self.symbol.type != self.scanner.NAME:
-            self.error_handler.log_error(5,0)
+            # Invalid Symbol Error
+            self.error_handler.log_error("Syn",6,0) 
             self.scanner.print_line_error()
             return False
 
         dev_name = self.decode()
         if dev_name in self.devices_defined:
             ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
-            self.error_handler.log_error(11,0)
+            # Device Already Defined
+            self.error_handler.log_error("Sem",5,0)
             self.scanner.print_line_error()
 
         self.devices_defined[dev_name] = self.counter
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn",5, 0)
             self.scanner.print_line_error()
             return None
 
         elif self.symbol.type != self.scanner.PUNCT:
-            self.error_handler.log_error(5,0)
+            # Invalid Punct
+            self.error_handler.log_error("Syn",8,0)
             self.scanner.print_line_error()
             return False
 
         while self.decode() == ",":
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                # Unexpected EOF
+                self.error_handler.log_error("Syn",5,0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.symbol.type != self.scanner.NAME:
-                self.error_handler.log_error(5, 0)
+                # Invalid Symbol
+                self.error_handler.log_error("Syn",6, 0)
                 self.scanner.print_line_error()
                 return False
 
@@ -206,24 +271,26 @@ class Parser:
 
             if dev_name in self.devices_defined:
                 ##TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
-                self.error_handler.log_error(11, 0)
+                # Already Defined
+                self.error_handler.log_error("Sem", 5, 0)
                 self.scanner.print_line_error()
                 return False
 
             self.devices_defined[dev_name] = self.counter
 
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                # Unexpected EOF
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.symbol.type != self.scanner.PUNCT:
-                self.error_handler.log_error(5, 0)
+                self.error_handler.log_error("Syn", 8, 0)
                 self.scanner.print_line_error()
                 return False
 
         if not self.detect("=",self.scanner.PUNCT):
-            self.error_handler.log_error(5, 0)
+            self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
 
@@ -244,14 +311,16 @@ class Parser:
         """
 
         if self.symbol.type != self.scanner.DEVICE:
-            self.error_handler.log_error(5,0)
+            # Invalid Symbol
+            self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
             return False
 
         device_type = self.decode()
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
@@ -262,49 +331,55 @@ class Parser:
             if self.decode()!="[":
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error(6,0)
+                self.error_handler.log_error("Syn",8,0) #<- TODO HOW TO IMPLEMENT?
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
+                # Unexpected EOF
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 0)
+                self.scanner.print_line_error() #<- Addition by Nikko, if wrong pls remove
                 return None
 
             elif self.symbol.type != self.scanner.NUMBER:
+                # Parameter Letter Error
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error(5, 0)
+                self.error_handler.log_error("Syn", 4, 0)
                 self.scanner.print_line_error()
                 return False
 
             parameter = self.symbol.id
 
             if not self.next_symbol():
+                # Unexpected EOF
                 self.counter -= 1
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.decode()!="]":
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error(1, 0)
+                self.error_handler.log_error("Syn", 8, 0)#<- TODO WHAT ERROR IS THIS?
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
+                # Unexpected EOF Error
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
         self.device_types.append((device_type, parameter))
 
         if self.decode() != ";":
-            self.error_handler.log_error(2, 0)
+            # Invalid Punct
+            self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
 
@@ -328,7 +403,8 @@ class Parser:
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
@@ -340,7 +416,8 @@ class Parser:
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
@@ -357,28 +434,32 @@ class Parser:
 
         # Check for EOF
         if self.symbol is None:
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         # Handle the case when the start word is not DEVICES
         elif not self.detect("DEVICES", self.scanner.KEYWORD):
-            self.error_handler.log_error(1,0)
+            # Invalid Symbol?
+            self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         elif self.decode()!=":":
-            self.error_handler.log_error(2,0)
+            # Invalid Symbol
+            self.error_handler.log_error("Syn", 6,0)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
@@ -387,22 +468,23 @@ class Parser:
         line_def = self._device_def()
 
         if line_def is None: # Unexpected EOF
-            self.error_handler.log_error(7,0)
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
         elif not line_def: #If there are errors, try the next line
             next_line_def = self.next_line()
             if next_line_def is None: # flag the eof
-                self.error_handler.log_error(3,0)
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
             elif not next_line_def: # unexpected keyword encountered
-                self.error_handler.log_error(4,0)
+                self.error_handler.log_error("Syn", 7,0)
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                # unexpected EOF
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
@@ -413,7 +495,7 @@ class Parser:
             line_def = self._device_def()
 
             if line_def is None:  # Unexpected EOF
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
@@ -421,16 +503,16 @@ class Parser:
                 next_line_def = self.next_line()
 
                 if next_line_def is None:  # flag the eof
-                    self.error_handler.log_error(3, 0)
+                    self.error_handler.log_error("Syn", 5, 0)
                     self.scanner.print_line_error()
                     return None
                 elif not next_line_def:  # unexpected keyword encountered
-                    self.error_handler.log_error(4, 0)
+                    self.error_handler.log_error("Syn", 7, 0)
                     self.scanner.print_line_error()
                     return False
 
                 if not self.next_symbol():
-                    self.error_handler.log_error(7, 0)
+                    self.error_handler.log_error("Syn", 5, 0)
                     self.scanner.print_line_error()
                     return None
 
@@ -448,7 +530,7 @@ class Parser:
         """
         #print(F"________CURRENT SYMBOL IS {self.decode()} {self.symbol.type} _____")
         if self.symbol.type != self.scanner.NAME:
-            self.error_handler.log_error(1,1)
+            self.error_handler.log_error("Syn", 6, 1)
             self.scanner.print_line_error()
             return False
 
@@ -457,12 +539,12 @@ class Parser:
 
         #TODO SEMANTIC ERROR
         if out_pin not in self.devices_defined:
-            self.error_handler.log_error(0,1)
+            self.error_handler.log_error("Sem", 4, 1)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 1)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
@@ -470,56 +552,56 @@ class Parser:
         # Check the case when the output port needs arguments
         if self.device_types[self.devices_defined[out_pin]][0] == "DTYPE":
             if self.decode() != ".":
-                self.error_handler.log_error(7, 1)
+                self.error_handler.log_error("Syn", 6, 1) #Invalid Symbol for now
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 1)
                 self.scanner.print_line_error()
                 return None
 
             if not( self.decode() in {"Q","QBAR"} and self.symbol.type==self.scanner.KEYWORD):
-                self.error_handler.log_error(7, 1)
+                self.error_handler.log_error("Syn", 6, 1) #Invalid Symbol?
                 self.scanner.print_line_error()
                 return False
 
             out_pin_arg = self.decode()
             self.out_ports.append((out_pin,out_pin_arg))
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 1)
                 self.scanner.print_line_error()
                 return None
 
         if self.decode()!=">":
-            self.error_handler.log_error(6,1)
+            self.error_handler.log_error("Syn", 8, 1)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
         in_pin = self.decode()
 
         if in_pin not in self.devices_defined:
-            self.error_handler.log_error(0,1)
+            self.error_handler.log_error(0,1) #<- What error is this?
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
         elif self.decode()!=".":
-            self.error_handler.log_error(6, 1)
+            self.error_handler.log_error("Syn", 8, 1)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 2)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
         in_pin_arg = self.decode()
@@ -529,31 +611,32 @@ class Parser:
         if self.device_types[self.devices_defined[in_pin]][0] == "DTYPE":
 
             if in_pin_arg not in {"DATA", "CLK", "SET", "CLEAR"}:
-                self.error_handler.log_error(8,1)
+                self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()
                 return False
         else:
             # The current symbol is of the form  I + number
             if in_pin_arg[0]!="I":
-                self.error_handler.log_error(3,1)
+                self.error_handler.log_error("Syn", 6, 1)
                 self.scanner.print_line_error()
                 return False
             try:
                 in_pin_arg = int(in_pin_arg[1:])
             except ValueError as e: #invalid input
-                self.error_handler.log_error(4,1)
+                self.error_handler.log_error("Sem", 9, 1)
+                self.scanner.print_line_error() #<- Insert from Nikko
                 return False
 
         self.connections_defined.append( ((out_pin,out_pin_arg), (in_pin,in_pin_arg)) )
         #TODO MAKE IT CORRESPONDING TO API
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         elif not self.detect(";",self.scanner.PUNCT):
-            self.error_handler.log_error(4, 1)
+            self.error_handler.log_error("Syn", 8, 1)
             self.scanner.print_line_error()
             return False
 
