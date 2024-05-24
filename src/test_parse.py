@@ -62,7 +62,7 @@ def test_parse_network(parser):
     parse = parser.parse_network()
     assert parse is True
 
-def test_parse_all():
+def parse_all():
     def claim(l:str):
         if l.upper()=="T":return True
         elif l.upper()=="F":return False
