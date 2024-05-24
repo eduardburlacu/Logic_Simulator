@@ -331,7 +331,7 @@ class Parser:
             if self.decode()!="[":
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
-                self.error_handler.log_error("Syn",8,0) #<- TODO HOW TO IMPLEMENT?
+                self.error_handler.log_error("Syn",8,0)
                 self.scanner.print_line_error()
                 return False
 
@@ -586,7 +586,7 @@ class Parser:
         in_pin = self.decode()
 
         if in_pin not in self.devices_defined:
-            self.error_handler.log_error(0,1) #<- What error is this?
+            self.error_handler.log_error("Sem", 9, 1)
             self.scanner.print_line_error()
             return False
 
@@ -653,29 +653,31 @@ class Parser:
 
         #Handle the case when the start word is not CONNECTIONS
         if not self.detect( "CONNECTIONS",self.scanner.KEYWORD):
-            self.error_handler.log_error(1,0)
+            self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         elif self.decode()!=":":
-            self.error_handler.log_error(2,0)
+            self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
             if con is None:
-                self.error_handler.log_error(11,1)
+                # unexpected eof
+                self.error_handler.log_error("Syn", 5, 1)
                 self.scanner.print_line_error()
                 return None
 
@@ -683,12 +685,12 @@ class Parser:
                 next_line_def = self.next_line()
 
                 if next_line_def is None:  # flag the eof
-                    self.error_handler.log_error(3, 1)
+                    self.error_handler.log_error("Syn", 5, 1)
                     self.scanner.print_line_error()
                     return None
 
                 elif not next_line_def:  # unexpected keyword encountered
-                    self.error_handler.log_error(4, 1)
+                    self.error_handler.log_error("Syn", 7, 1)
                     self.scanner.print_line_error()
                     return False
 
@@ -712,38 +714,41 @@ class Parser:
             return True
 
         elif not self.detect("MONITORS", self.scanner.KEYWORD):
-            self.error_handler.log_error(7,2)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 2)
+            # Unexpected EOF
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return None
 
         elif self.decode() != ":":
-            self.error_handler.log_error(2,2)
+            self.error_handler.log_error("Syn", 8, 2)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
         monitor = self.decode()
 
         if monitor not in self.devices_defined:
-            self.error_handler.log_error(9,2)
+            self.error_handler.log_error("Sem", 8, 2)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error(7, 0)
+            self.error_handler.log_error("Syn", 5, 0)
+            self.scanner.print_line_error() #<- Nikko addition, not sure
             return None
 
         elif self.symbol.type != self.scanner.PUNCT:
-            self.error_handler.log_error(1, 2)
+            self.error_handler.log_error("Syn", 8, 2)
             self.scanner.print_line_error()
             return False
 
@@ -751,20 +756,21 @@ class Parser:
 
         if self.decode() == ".":
             if not self.next_symbol():
-                self.error_handler.log_error(7, 2)
+                self.error_handler.log_error("Syn", 8, 2)
                 self.scanner.print_line_error()
                 return None
             param = self.decode()
             if param not in {"Q","QBAR"}:
-                self.error_handler.log_error(3, 2)
+                self.error_handler.log_error("Syn", 6, 2)
                 self.scanner.print_line_error()
                 return False
             if not self.next_symbol():
-                self.error_handler.log_error(7, 2)
+                #Unexpected EOF
+                self.error_handler.log_error("Syn", 5, 2)
                 self.scanner.print_line_error()
                 return None
             elif self.symbol.type != self.scanner.PUNCT:
-                self.error_handler.log_error(1, 2)
+                self.error_handler.log_error("Syn", 8, 2)
                 self.scanner.print_line_error()
                 return False
 
@@ -775,24 +781,25 @@ class Parser:
         while self.detect(",", self.scanner.PUNCT):
 
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                # Unexpected EOF
+                self.error_handler.log_error("Syn", 5, 2)
                 self.scanner.print_line_error()
                 return None
 
             monitor = self.decode()
 
             if monitor not in self.devices_defined:
-                self.error_handler.log_error(9, 2)
+                self.error_handler.log_error("Sem", 8, 2)
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
-                self.error_handler.log_error(7, 0)
+                self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.symbol.type != self.scanner.PUNCT:
-                self.error_handler.log_error(1, 2)
+                self.error_handler.log_error("Syn", 8, 2)
                 self.scanner.print_line_error()
                 return False
 
@@ -800,28 +807,28 @@ class Parser:
             if self.decode() == ".":
 
                 if not self.next_symbol():
-                    self.error_handler.log_error(7, 2)
+                    self.error_handler.log_error("Syn", 5, 2)
                     self.scanner.print_line_error()
                     return None
                 param = self.decode()
                 if param not in {"Q","QBAR"}:
-                    self.error_handler.log_error(3, 2)
+                    self.error_handler.log_error("Syn", 6, 2)
                     self.scanner.print_line_error()
                     return False
 
                 if not self.next_symbol():
-                    self.error_handler.log_error(7, 2)
+                    self.error_handler.log_error("Syn", 5, 2)
                     self.scanner.print_line_error()
                     return None
                 elif self.symbol.type != self.scanner.PUNCT:
-                    self.error_handler.log_error(1, 2)
+                    self.error_handler.log_error("Syn", 8, 2)
                     self.scanner.print_line_error()
                     return False
 
             self.monitors_defined.append((monitor,param))
 
         if not self.detect(";",self.scanner.PUNCT):
-            self.error_handler.log_error(5, 0)
+            self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
 
