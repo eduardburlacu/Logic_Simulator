@@ -766,12 +766,34 @@ class Parser:
         if parsed_monitors is not True:
             return False
 
-        ##todo be more rigurous with handling EOF at the end
+        ##todo be more rigorous with handling EOF at the end
         return True
 
-    def create_device(self):
-        pass
-    def create_connection(self):
-        pass
-    def create_monitor(self):
-        pass
+    def create_devices(self):
+        """
+        Creates device objects from list of device names
+        """
+        for d in self.device_types:
+            # d is of form (device_type, parameter)
+            errorOut = self.devices.make_device(
+                self.device_types[self.devices_defined[d[0]]][0], d[1]
+                )
+            if errorOut != self.devices.NO_ERROR:
+                with ValueError as e:
+                    print(e)
+
+    def create_network(self):
+        """
+        Creates new connection between two devices
+        """
+        for c in self.connections_defined:
+            # c is of form  ((out_pin, out_pin_arg), (in_pin, in_pin_arg))
+            self.network.make_connection(c[0][0],c[0][1],c[1][0],c[1][1])
+
+    def create_monitors(self):
+        """
+        Places a monitor on an output
+        """
+        for m in self.monitors_defined :
+            # m is of form (monitor, param)
+            self.monitors.make_monitor(m[0],m[1])
