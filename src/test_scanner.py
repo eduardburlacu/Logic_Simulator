@@ -73,11 +73,14 @@ def test_get_symbol(scanner):
 
 
 def test_get_many_symbols(scanner):
+    scanner.file.seek(0)
     print("\n")
     for _ in range(50):
         symbol = scanner.get_symbol()
+        print ("SYMBOL    ",scanner.decode(symbol), symbol.line, symbol.line_position)
+        scanner.print_line_error()
 
 def test_get_all_symbols(scanner):
     print("\n")
-    symbols = scanner.get_all_symbols(cache=False)
+    symbols = scanner.get_all_symbols()
 

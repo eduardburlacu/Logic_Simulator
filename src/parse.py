@@ -142,7 +142,7 @@ class Parser:
             return None
 
         while not self.detect(";", self.scanner.PUNCT):
-            if self.symbol.type == self.scanner.KEYWORD:
+            if self.decode() in {"CONNECTIONS","MONITORS"}:
                 return False
             if not self.next_symbol(): #Check EOF char
                 return None
@@ -150,13 +150,13 @@ class Parser:
     def next_block(self):
         """
         Returns:
-            - True: next line successfully reached
+            - True: next block successfully reached
             - None: there was an unexpected EOF
         """
         # Skip to the next block, abort parsing in this block
         if self.symbol is None:
             return None
-        while self.symbol.type != self.scanner.KEYWORD:
+        while self.symbol.type != self.scanner.KEYWORD or self.symbol.id > 2:
             if not self.next_symbol():
                 return None
         return True
@@ -260,15 +260,21 @@ class Parser:
         if device_type in {"CLOCK","SWITCH","AND","NAND","OR","NOR"}: # PARAMETER REQUIRED
 
             if self.decode()!="[":
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error(6,0)
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error(7, 0)
                 return None
 
             elif self.symbol.type != self.scanner.NUMBER:
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error(5, 0)
                 self.scanner.print_line_error()
                 return False
@@ -276,21 +282,27 @@ class Parser:
             parameter = self.symbol.id
 
             if not self.next_symbol():
+                self.counter -= 1
                 self.error_handler.log_error(7, 0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.decode()!="]":
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error(1, 0)
                 self.scanner.print_line_error()
                 return False
 
             if not self.next_symbol():
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error(7, 0)
                 self.scanner.print_line_error()
                 return None
 
         self.device_types.append((device_type, parameter))
+
         if self.decode() != ";":
             self.error_handler.log_error(2, 0)
             self.scanner.print_line_error()
@@ -309,13 +321,10 @@ class Parser:
         """
 
         name_check = self._device_name()
+
         if name_check is None: #unexpected EOF
-            self.error_handler.log_error(7,0)
-            self.scanner.print_line_error()
             return None
         elif not name_check: #unexpected keyword
-            self.error_handler.log_error(7, 0)
-            self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
@@ -326,13 +335,10 @@ class Parser:
         type_check = self._device_type()
 
         if type_check is None: #unexpected EOF
-            self.error_handler.log_error(7,0)
-            self.scanner.print_line_error()
             return None
         elif not type_check: #unexpected keyword
-            self.error_handler.log_error(7, 0)
-            self.scanner.print_line_error()
             return False
+
         if not self.next_symbol():
             self.error_handler.log_error(7, 0)
             self.scanner.print_line_error()
@@ -354,6 +360,7 @@ class Parser:
             self.error_handler.log_error(7, 0)
             self.scanner.print_line_error()
             return None
+
         # Handle the case when the start word is not DEVICES
         elif not self.detect("DEVICES", self.scanner.KEYWORD):
             self.error_handler.log_error(1,0)
@@ -383,7 +390,6 @@ class Parser:
             self.error_handler.log_error(7,0)
             self.scanner.print_line_error()
             return None
-
         elif not line_def: #If there are errors, try the next line
             next_line_def = self.next_line()
             if next_line_def is None: # flag the eof
@@ -400,7 +406,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return None
 
-        self.counter = 1
+        self.counter += 1
 
         while not self.detect("CONNECTIONS", self.scanner.KEYWORD):
 
@@ -440,7 +446,7 @@ class Parser:
 
         :return:
         """
-
+        #print(F"________CURRENT SYMBOL IS {self.decode()} {self.symbol.type} _____")
         if self.symbol.type != self.scanner.NAME:
             self.error_handler.log_error(1,1)
             self.scanner.print_line_error()
@@ -586,10 +592,13 @@ class Parser:
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
             if con is None:
+                self.error_handler.log_error(11,1)
+                self.scanner.print_line_error()
                 return None
 
             elif not con:  # If there are errors, try the next line
                 next_line_def = self.next_line()
+
                 if next_line_def is None:  # flag the eof
                     self.error_handler.log_error(3, 1)
                     self.scanner.print_line_error()
@@ -600,10 +609,6 @@ class Parser:
                     self.scanner.print_line_error()
                     return False
 
-                if not self.next_symbol():
-                    self.error_handler.log_error(7, 1)
-                    self.scanner.print_line_error()
-                    return None
 
             if not self.next_symbol():
                 # Here it should be True and not None because the
@@ -619,6 +624,7 @@ class Parser:
 
         :return:
         """
+
         if self.symbol is None:
             return True
 

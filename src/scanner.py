@@ -94,6 +94,7 @@ class Scanner:
         char = self.file.read(1)
         self.current_line_position += 1
         if char == "\n":
+            self.checkpoint = 1 + self.file.tell()
             self.current_line += 1
         self.current_character = char
         return char
@@ -132,7 +133,7 @@ class Scanner:
             return self.devices_map.get_name_string(sym.id)
 
     @typechecked
-    def create_symbol(self, string:str, type_sym:str):
+    def create_symbol(self, string:str, type_sym:str,line:int, line_pos:int):
         if type_sym==self.EOF:
             symbol_id = 0
         elif type_sym==self.PUNCT:
@@ -151,8 +152,8 @@ class Scanner:
         return Symbol(
             type_sym=type_sym,
             id_sym= symbol_id,
-            line=self.current_line,
-            line_position = self.current_line_position
+            line=line,
+            line_position = line_pos
         )
 
     def get_symbol(self):
@@ -168,57 +169,54 @@ class Scanner:
                 self.current_character = self.get_next_character()
                 self.skip_spaces()
 
+        line = self.current_line
+        line_pos = self.current_line_position
 
         # Now check the symbol coming after
         if self.current_character in {";",":"}:
             # This is the marker for end of statement
-            symbol = self.create_symbol(self.current_character, self.PUNCT)
-            self.checkpoint = 1 + self.file.tell()
+            symbol = self.create_symbol(self.current_character, self.PUNCT,line,line_pos)
             self.get_next_character()
             self.skip_spaces()
 
         elif self.current_character.isalpha() or self.current_character=="_":  # name
             name_string = self.get_name()
             if self.keywords_map.query(name_string) is not None:
-                symbol =self.create_symbol(name_string, self.KEYWORD)
+                symbol =self.create_symbol(name_string, self.KEYWORD,line,line_pos)
 
             elif self.devices_map.query(name_string) is not None:
-                symbol = self.create_symbol(name_string, self.DEVICE)
+                symbol = self.create_symbol(name_string, self.DEVICE,line,line_pos)
 
             else:
-                symbol = self.create_symbol(name_string, self.NAME)
+                symbol = self.create_symbol(name_string, self.NAME,line,line_pos)
 
         elif self.current_character.isdigit():  # number
             number = self.get_number()
-            symbol = self.create_symbol(number, self.NUMBER)
+            symbol = self.create_symbol(number, self.NUMBER,line,line_pos)
 
         elif self.punct_map.query(self.current_character) is not None:
-            symbol = self.create_symbol(self.current_character, self.PUNCT)
+            symbol = self.create_symbol(self.current_character, self.PUNCT,line,line_pos)
             self.get_next_character()
 
         elif self.current_character == "":  # end of file
-            symbol = self.create_symbol(self.current_character,self.EOF)
+            symbol = self.create_symbol(self.current_character,self.EOF, line,line_pos)
 
         else:
             # not a valid character, raise error
             self.print_line_error()
             raise SyntaxError(f"Character {self.current_character} not valid.")
+        self.symbols.append(symbol)
 
         return symbol
 
-    def get_all_symbols(self, cache=False):
+    def get_all_symbols(self):
         self.file.seek(0)
         symbols = []
         while True:
             symbol = self.get_symbol()
-            print(self.decode(symbol), symbol.type)
-            symbols.append(symbol)
-            if symbols[-1].type == self.EOF:
+            print(self.decode(symbol), symbol.type, symbol.line, symbol.line_position)
+            if self.symbols[-1].type == self.EOF:
                 break
-
-        if cache:
-            self.symbols = symbols
-
         return symbols
 
     def print_line_error(self):
@@ -227,6 +225,6 @@ class Scanner:
         self.file.seek(self.checkpoint)
         print("\n")
         print(self.file.readline()[:-1])
-        print(" " * (self.current_line_position-self.checkpoint) + "^")
+        print(" " * (self.symbols[-1].line_position - self.checkpoint -1 ) + "^")
         self.file.seek(temp) #Go back to the error location
 
