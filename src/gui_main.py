@@ -351,3 +351,28 @@ class Gui(wx.Frame):
             self.names, self.cycle_count
         )
         self.canvas.render(self.signals_list)
+
+    def get_signals_list(self, names, cycle_count):
+        """Returns a list of lists of the signals of the monitored devices"""
+
+        signals_list = []
+        self.run(cycle_count)
+        for id_pair in self.monitors.monitors_dictionary.items():
+            signal = []
+            if id_pair[0][1] == 14:
+                signal.append(names.get_name_string(id_pair[0][0]) + ".Q")
+            elif id_pair[0][1] == 15:
+                signal.append(names.get_name_string(id_pair[0][0]) + ".QBAR")
+            else:
+                signal.append(names.get_name_string(id_pair[0][0]))
+            signal.append(id_pair[1])
+            signals_list.append(signal)
+
+        return signals_list
+
+    def run(self, cycles):
+        """Runs the circuit for a given number of cycles."""
+
+        for _ in range(cycles):
+            if self.network.execute_network():
+                self.monitors.record_signals()
