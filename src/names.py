@@ -40,7 +40,7 @@ class Names:
     def __init__(self, names_list=None):
         """Initialise names list."""
         if names_list is None:
-            self.names_list=[]
+            self.names_list = []
         else:
             self.names_list = names_list
         self.error_code_count = 0  # how many error codes have been declared
@@ -60,7 +60,7 @@ class Names:
         """
         try:
             return self.names_list.index(name_string)
-        except ValueError as e :
+        except ValueError as e:
             return None
 
     def lookup(self, name_string_list):
@@ -76,7 +76,6 @@ class Names:
                 self.names_list.append(name)
                 output.append(self.names_list.index(name))
         return output
-
 
     def get_name_string(self, name_id):
         """Return the corresponding name string for name_id.
