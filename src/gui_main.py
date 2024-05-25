@@ -245,22 +245,9 @@ class Gui(wx.Frame):
         self.devices = devices
         self.monitors = monitors
         self.network = network
-
-        """Initialise dictionaries, lists for the checks for switches
-            and monitoring"""
-    
-        self.on_checks = {}
-        self.monitor_checks = {}
-        self.clocks = {}
         self.monitored_list = self.get_monitored_devices_list(devices, names)
-
-        # Used to use the continue button to run on first click
         self.running = False
-
-        # Default number of cycles
         self.cycle_count = 10
-
-        # Set up list of devices and signals
         self.devices_list = self.get_devices(devices, names)
         self.signals_list = self.get_signals_list(names, self.cycle_count)
 
@@ -376,3 +363,66 @@ class Gui(wx.Frame):
         for _ in range(cycles):
             if self.network.execute_network():
                 self.monitors.record_signals()
+
+    def get_devices(self, devices, names):
+        """Returns a list of lists, with each element having id, name, value"""
+
+        all_devices_list = []
+        for device in devices.devices_list:
+            # Unique condition for DTYPE
+            if self.get_device_string(device.device_kind) == ("DTYPE"):
+                device_list = []
+                id = device.device_id
+
+                # D.Q
+                if (device.device_id, 14) in self.monitors.monitors_dictionary:
+                    device_list.append(names.get_name_string(id) + ".Q")
+                    device_list.append(self.get_device_string(device.device_kind))
+                    device_list.append(devices.return_property(id))
+                    all_devices_list.append(device_list)
+                    device_list = []
+
+                # D.QBAR
+                if (device.device_id, 15) in self.monitors.monitors_dictionary:
+                    device_list.append(names.get_name_string(id) + ".QBAR")
+                    device_list.append(self.get_device_string(device.device_kind))
+                    device_list.append(devices.return_property(id))
+                    all_devices_list.append(device_list)
+
+            # Rest of devices
+            else:
+                device_list = []
+                id = device.device_id
+                device_list.append(names.get_name_string(id))
+                device_list.append(self.get_device_string(device.device_kind))
+                device_list.append(devices.return_property(id))
+
+                all_devices_list.append(device_list)
+        return all_devices_list
+    
+    def get_monitored_devices_list(self, devices, names):
+        """Returns a list of monitored devices."""
+
+        monitored_devices = []
+        for id_pair in self.monitors.monitors_dictionary.items():
+            if id_pair[0][1]:
+                if id_pair[0][1] == 14:
+                    monitored_devices.append(
+                        names.get_name_string(id_pair[0][0]) + ".Q"
+                    )
+                elif id_pair[0][1] == 15:
+                    monitored_devices.append(
+                        names.get_name_string(id_pair[0][0]) + ".QBAR"
+                    )
+            else:
+                monitored_devices.append(names.get_name_string(id_pair[0][0]))
+        return monitored_devices
+    
+    def get_device_string(self, device_number):
+        """Returns string device name matching with the number."""
+
+        id_to_name_list = ["AND", "OR", "NAND", "NOR", "XOR", "CLOCK", "SWITCH", "DTYPE"]
+        if device_number in range(8):
+            return id_to_name_list[device_number]
+        else:
+            return str(device_number)
