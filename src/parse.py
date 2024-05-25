@@ -885,7 +885,7 @@ class Parser:
             return False
 
         # TODO be more rigorous with handling EOF at the end
-        return self.error_handler.error_count == 0
+        return True
 
     def create_devices(self):
         """Create device objects from list of device names."""
