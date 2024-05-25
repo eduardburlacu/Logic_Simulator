@@ -260,18 +260,44 @@ class Gui(wx.Frame):
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
+        self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
+        self.add_button = wx.Button(self, wx.ID_ANY, "Add")
+        self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
+
+        # Dropdown list options
+        dropdown_options = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"]
+        self.dropdown = wx.ComboBox(self, wx.ID_ANY, choices=dropdown_options, style=wx.CB_READONLY)
+        self.dropdown.Bind(wx.EVT_COMBOBOX, self.on_dropdown)
+
+        # List to display added options
+        self.added_list = wx.ListBox(self, wx.ID_ANY)
+        self.added_list.Bind(wx.EVT_LISTBOX, self.on_listbox_selection)
+        
+        # Create the list control for items with on/off states
+        self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+        self.list_ctrl.InsertColumn(0, 'Input', width=140)
+        self.list_ctrl.InsertColumn(1, 'State', width=60)
+
+        # Add sample items to the list control
+        for i in range(5):
+            index = self.list_ctrl.InsertItem(i, f'Switch {i+1}')
+            self.list_ctrl.SetItem(index, 1, 'Off')
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
         self.run_button.Bind(wx.EVT_BUTTON, self.on_run_button)
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
+        self.add_button.Bind(wx.EVT_BUTTON, self.on_add_button)
+        self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_list_item_activated)
 		
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         button_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         button_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        dropdown_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
@@ -279,6 +305,8 @@ class Gui(wx.Frame):
 		# ---Button Configuration
         button_sizer1.Add(self.run_button, 1, wx.ALL, 0)
         button_sizer1.Add(self.continue_button, 1, wx.ALL, 0)
+        button_sizer2.Add(self.add_button, 1, wx.ALL, 0)
+        button_sizer2.Add(self.remove_button, 1, wx.ALL, 0)
 
 		# ---Simulation Cycles
         side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
@@ -287,11 +315,17 @@ class Gui(wx.Frame):
         
         # ---Monitors with Dropdown List and Added List
         side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
+        dropdown_sizer.Add(self.dropdown, 1, wx.EXPAND | wx.ALL, 10)
+        dropdown_sizer.Add(self.added_list, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(dropdown_sizer, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 10)
+        
+        # ---Set Switches
+        side_sizer.Add(self.textS, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 10)
 		
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
-
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
         Id = event.GetId()
@@ -426,3 +460,40 @@ class Gui(wx.Frame):
             return id_to_name_list[device_number]
         else:
             return str(device_number)
+        
+    def on_remove_button(self, event):
+        """Handle the event when the user clicks the remove button."""
+        selection = self.added_list.GetSelection()
+        if selection != wx.NOT_FOUND:
+            item = self.added_list.GetString(selection)
+            self.added_list.Delete(selection)
+            text = f"Removed '{item}' from the list."
+            self.canvas.render(text)
+
+    def on_add_button(self, event):
+        """Handle the event when the user clicks the add button."""
+        selection = self.dropdown.GetStringSelection()
+        if selection and selection not in self.added_list.GetItems():
+            self.added_list.Append(selection)
+            text = f"Added '{selection}' to the list."
+            self.canvas.render(text)
+
+    def on_dropdown(self, event):
+        """Handle the event when the user selects an option from the dropdown list."""
+        selection = self.dropdown.GetStringSelection()
+        text = f"Dropdown selection changed to: {selection}"
+        self.canvas.render(text)
+
+    def on_listbox_selection(self, event):
+        """Handle the event when a selection is made in the listbox."""
+        selection = event.GetString()
+        text = f"Listbox selection changed to: {selection}"
+        self.canvas.render(text)
+
+    def on_list_item_activated(self, event):
+        """Handle the event when a list item is activated (double-clicked)."""
+        index = event.GetIndex()
+        current_state = self.list_ctrl.GetItem(index, 1).GetText()
+        new_state = 'On' if current_state == 'Off' else 'Off'
+        self.list_ctrl.SetItem(index, 1, new_state)
+        self.canvas.render(f"Item {index+1} state changed to: {new_state}")
