@@ -7,19 +7,19 @@ from scanner import Scanner
 def scanner():
     return Scanner(
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "circuit1.txt")),
-        names = Names(),
-        devices = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR"]),
-        keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
-        punct= Names([ ",", ".", ":", ";", ">", "[", "]", "=" ])
+        names_map = Names(),
+        devices_map = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR"]),
+        keywords_map = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
+        punct_map= Names([ ",", ".", ":", ";", ">", "[", "]", "=" ])
     )
 @pytest.fixture
 def scanner_fault():
     return Scanner(
         path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "doc", "net_definition", "test_errors_circuit1.txt")),
-        names = Names(),
-        devices = Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"]),
-        keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
-        punct=Names([",", ".", ":", ">", "[", "]", "="])
+        names_map = Names(),
+        devices_map = Names(["CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR"]),
+        keywords_map = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
+        punct_map=Names([",", ".", ":", ">", "[", "]", "="])
     )
 
 def test_get_characters(scanner):
@@ -77,8 +77,8 @@ def test_get_many_symbols(scanner):
     print("\n")
     for _ in range(50):
         symbol = scanner.get_symbol()
-        print ("SYMBOL    ",scanner.decode(symbol), symbol.line, symbol.line_position)
-        scanner.print_line_error()
+        print ("SYMBOL    ",scanner.decode(symbol), symbol.id)
+        #scanner.print_line_error()
 
 def test_get_all_symbols(scanner):
     print("\n")

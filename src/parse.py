@@ -56,68 +56,49 @@ class ErrorHandler:
             **kwargs: Additional keyword arguments to be
                       logged with the error message.
         """
-        print(f"Error encountered: {error_code}, {idx}")
         self.error_count[idx] += 1
 
         if error_type == "Syn":
             if error_code == 1:
-                with SyntaxErrorsC.CharNotSupported(idx) as e:
-                    print(e)
+                SyntaxErrorsC.CharNotSupported(idx)
             elif error_code == 2:
-                with SyntaxErrorsC.DigitStartsName(idx) as e:
-                    print(e)
+                SyntaxErrorsC.DigitStartsName(idx)
             elif error_code == 3:
-                with SyntaxErrorsC.MultipleAssignments(idx) as e:
-                    print(e)
+                SyntaxErrorsC.MultipleAssignments(idx)
             elif error_code == 4:
-                with SyntaxErrorsC.ParameterLetter(idx) as e:
-                    print(e)
+                SyntaxErrorsC.ParameterLetter(idx)
             elif error_code == 5:
-                with SyntaxErrorsC.UnexpectedEOF(idx) as e:
-                    print(e)
+                SyntaxErrorsC.UnexpectedEOF(idx)
             elif error_code == 6:
-                with SyntaxErrorsC.InvalidSymbol(idx) as e:
-                    print(e)
+                SyntaxErrorsC.InvalidSymbol(idx)
             elif error_code == 7:
-                with SyntaxErrorsC.UnexpectedKeyword(idx) as e:
-                    print(e)
+                SyntaxErrorsC.UnexpectedKeyword(idx)
             elif error_code == 8:
-                with SyntaxErrorsC.InvalidPunct(idx) as e:
-                    print(e)
+                SyntaxErrorsC.InvalidPunct(idx)
             else:
                 raise ValueError("Invalid Error Code for Syntax")
-        if error_type == "Sem":
+        elif error_type == "Sem":
             if error_code == 1:
-                with SemanticErrorsC.InputNotAssigned(idx) as e:
-                    print(e)
+                SemanticErrorsC.InputNotAssigned(idx)
             elif error_code == 2:
-                with SemanticErrorsC.InputToSwitchAssigned(idx) as e:
-                    print(e)
+                SemanticErrorsC.InputToSwitchAssigned(idx)
             elif error_code == 3:
-                with SemanticErrorsC.ClockPeriodZero(idx) as e:
-                    print(e)
+                SemanticErrorsC.ClockPeriodZero(idx)
             elif error_code == 4:
-                with SemanticErrorsC.ReferencedBeforeAssigned(idx) as e:
-                    print(e)
+                SemanticErrorsC.ReferencedBeforeAssigned(idx)
             elif error_code == 5:
-                with SemanticErrorsC.AlreadyAssigned(idx) as e:
-                    print(e)
+                SemanticErrorsC.AlreadyAssigned(idx)
             elif error_code == 6:
-                with SemanticErrorsC.DeviceNameI(idx) as e:
-                    print(e)
+                SemanticErrorsC.DeviceNameI(idx)
             elif error_code == 7:
-                with SemanticErrorsC.MonitorOnInput(idx) as e:
-                    print(e)
+                SemanticErrorsC.MonitorOnInput(idx)
             elif error_code == 8:
-                with SemanticErrorsC.DeviceNotExist(idx) as e:
-                    print(e)
+                SemanticErrorsC.DeviceNotExist(idx)
             elif error_code == 9:
-                with SemanticErrorsC.PinNotExist(idx) as e:
-                    print(e)
+                SemanticErrorsC.PinNotExist(idx)
             else:
                 raise ValueError("Invalid Error Code for Semantic")
-        else:
-            raise TypeError("Invalid Error Type")
+
 
 
 class Parser:
@@ -225,12 +206,13 @@ class Parser:
         #  Skip to the next block, abort parsing in this block
         if self.symbol is None:
             return None
-        while self.symbol.type != self.scanner.KEYWORD or self.symbol.id > 2:
+        #while self.symbol.type != self.scanner.KEYWORD or self.symbol.id > 2:
+        while self.decode() not in {"CONNECTIONS","MONITORS"}:
             if not self.next_symbol():
                 return None
         return True
 
-    def _device_name(self) -> Union[bool, None]:
+    def _device_name(self):
         """
         Return the following.
 
@@ -308,7 +290,7 @@ class Parser:
 
         return True
 
-    def _device_type(self) -> Union[bool, None]:
+    def _device_type(self):
         """
         Return the following.
 
@@ -366,7 +348,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
 
-            parameter = self.symbol.id
+            parameter = int(self.scanner.decode(self.symbol)) #self.symbol.id
 
             if not self.next_symbol():
                 #  Unexpected EOF
@@ -424,7 +406,7 @@ class Parser:
             self.scanner.print_line_error()
             return None
 
-        type_check = self._device_type()
+        type_check= self._device_type()
 
         if type_check is None:
             # unexpected EOF
@@ -863,6 +845,36 @@ class Parser:
 
         return True
 
+
+    def create_devices(self):
+        """Creates all device objects from list of device names."""
+        for device_name in self.devices_defined:
+            # d is of form (device_type, parameter)
+            device_kind, device_property = self.device_types[self.devices_defined[device_name]]
+
+            #print('\n',self.names.query(device_name), self.names.query(device_kind), device_property)
+            errorOut = self.devices.make_device( 
+                self.scanner.names_map.query(device_name),
+                device_kind,
+                device_property
+                )
+            if errorOut != self.devices.NO_ERROR:
+                print(errorOut)
+                #with ValueError as e:
+                #    print(e)
+
+    def create_network(self):
+        """Creates all connections between devices."""
+        for c in self.connections_defined:
+            # c is of form  ((out_pin, out_pin_arg), (in_pin, in_pin_arg))
+            self.network.make_connection(c[0][0], c[0][1], c[1][0], c[1][1])
+
+    def create_monitors(self):
+        """Place all monitor on required output."""
+        for m in self.monitors_defined:
+            # m is of form (monitor, param)
+            self.monitors.make_monitor(m[0], m[1])
+
     def parse_network(self) -> bool:
         """Parse the circuit definition file."""
         parsed_devices = self.parse_devices()
@@ -884,28 +896,8 @@ class Parser:
         if parsed_monitors is not True:
             return False
 
+        self.create_devices()
+        #self.create_network()
+        #self.create_monitors()
         # TODO be more rigorous with handling EOF at the end
         return True
-
-    def create_devices(self):
-        """Create device objects from list of device names."""
-        for d in self.device_types:
-            # d is of form (device_type, parameter)
-            errorOut = self.devices.make_device(
-                self.device_types[self.devices_defined[d[0]]][0], d[1]
-                )
-            if errorOut != self.devices.NO_ERROR:
-                with ValueError as e:
-                    print(e)
-
-    def create_network(self):
-        """Create new connection between two devices."""
-        for c in self.connections_defined:
-            # c is of form  ((out_pin, out_pin_arg), (in_pin, in_pin_arg))
-            self.network.make_connection(c[0][0], c[0][1], c[1][0], c[1][1])
-
-    def create_monitors(self):
-        """Place a monitor on an output."""
-        for m in self.monitors_defined:
-            # m is of form (monitor, param)
-            self.monitors.make_monitor(m[0], m[1])

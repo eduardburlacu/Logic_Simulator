@@ -52,22 +52,22 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path:str, names, devices, keywords, punct):
+    def __init__(self, path:str, names_map, devices_map, keywords_map, punct_map):
         """Open specified file and initialise reserved words and IDs."""
         """
         keywords_set = { "DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I" }
-        devices_set = {"CLOCK", "SWITCH", "AND", "NAND","CLK","OR", "NOR", "XOR","DTYPE"}
+        devices_set = {"CLOCK", "SWITCH", "AND", "NAND","OR", "NOR", "XOR","DTYPE"}
         """
 
         self.current_character = None
 
-        self.names_map = names
+        self.names_map = names_map
 
-        self.devices_map = devices
+        self.devices_map = devices_map
 
-        self.keywords_map = keywords
+        self.keywords_map = keywords_map
 
-        self.punct_map = punct
+        self.punct_map = punct_map
 
         self.symbol_type_list = [
             self.KEYWORD, self.NAME, self.NUMBER, self.DEVICE,
@@ -113,35 +113,40 @@ class Scanner:
         return name
 
     def decode(self,sym:Symbol):
-        if sym.type == self.KEYWORD:
-            return self.keywords_map.get_name_string(sym.id)
-        elif sym.type == self.EOF:
-            return ""
-        elif sym.type == self.PUNCT:
-            return self.punct_map.get_name_string(sym.id)
-        elif sym.type == self.NAME:
-            return self.names_map.get_name_string(sym.id)
-        elif sym.type == self.NUMBER:
-            return sym.id
-        elif sym.type == self.DEVICE:
-            return self.devices_map.get_name_string(sym.id)
+        return self.names_map.get_name_string(sym.id)
+        
+        #if sym.type == self.KEYWORD:
+        #    return self.keywords_map.get_name_string(sym.id)
+        #elif sym.type == self.EOF:
+        #    return ""
+        #elif sym.type == self.PUNCT:
+        #    return self.punct_map.get_name_string(sym.id)
+        #elif sym.type == self.NAME:
+        #    return self.names_map.get_name_string(sym.id)
+        #elif sym.type == self.NUMBER:
+        #    return sym.id
+        #elif sym.type == self.DEVICE:
+        #    return self.devices_map.get_name_string(sym.id)
 
 
     def create_symbol(self, string:str, type_sym:str,line:int, line_pos:int):
-        if type_sym==self.EOF:
-            symbol_id = 0
-        elif type_sym==self.PUNCT:
-            symbol_id = self.punct_map.query(string)
-        elif type_sym==self.NAME:
-            [symbol_id] = self.names_map.lookup([string])
-        elif type_sym==self.DEVICE:
-            symbol_id = self.devices_map.query(string)
-        elif type_sym==self.KEYWORD:
-            symbol_id = self.keywords_map.query(string)
-        elif type_sym==self.NUMBER:
-            symbol_id = int(string)
-        else:
-            raise AttributeError("Unsupported symbol type")
+        [symbol_id] = self.names_map.lookup([string])
+
+
+        #if type_sym==self.EOF:
+        #    symbol_id = 0
+        #elif type_sym==self.PUNCT:
+        #    symbol_id = self.punct_map.query(string)
+        #elif type_sym==self.NAME:
+        #    [symbol_id] = self.names_map.lookup([string])
+        #elif type_sym==self.DEVICE:
+        #    symbol_id = self.devices_map.query(string)
+        #elif type_sym==self.KEYWORD:
+        #    symbol_id = self.keywords_map.query(string)
+        #elif type_sym==self.NUMBER:
+        #    symbol_id = int(string)
+        #else:
+        #    raise AttributeError("Unsupported symbol type")
 
         return Symbol(
             type_sym=type_sym,
