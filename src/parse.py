@@ -661,7 +661,7 @@ class Parser:
                 self.scanner.print_line_error()
                 return False
             try:
-                in_pin_arg = int(in_pin_arg[1:])
+                x = int(in_pin_arg[1:]) ##TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             except ValueError as e:  # invalid input
                 self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()  # Insert from Nikko
@@ -678,7 +678,6 @@ class Parser:
         
         self.connections_defined.append(
             ((out_pin, out_pin_arg), (in_pin, in_pin_arg)))
-        # TODO MAKE IT CORRESPONDING TO API
 
         if not self.next_symbol():
             self.error_handler.log_error("Syn", 5, 1)
@@ -893,13 +892,13 @@ class Parser:
             device_kind, device_property = self.device_types[self.devices_defined[device_name]]
 
             errorOut = self.devices.make_device( 
-                self.scanner.names_map.query(device_name),
-                device_kind,
+                self.names.query(device_name),
+                self.names.query(device_kind),
                 device_property
                 )
 
             if errorOut == self.devices.NO_ERROR:
-                print(f"SUCCESFUL CREATION OF {device_name, device_kind, device_property}")
+                print(f"SUCCESFUL CREATION OF {device_name}, {device_kind}, {device_property}")
             else:
                 print(f"ERROR CODE ENCOUNTERED:{errorOut}")
 
@@ -924,7 +923,7 @@ class Parser:
                 second_port_id=self.names.query(in_pin_arg)
             )
             if errorOut == self.network.NO_ERROR:
-                print(f"SUCCESFUL CREATION OF ")
+                print(f"SUCCESSFUL CREATION OF NET CONNECTION {out_pin}[{out_pin_arg}]>{in_pin}[{in_pin_arg}]")
             else:
                 print(f"ERROR CODE ENCOUNTERED:{errorOut}")
 
@@ -955,10 +954,12 @@ class Parser:
                     continue
                 else:
                     self.error_handler.log_error("Sem", 1, 1)
+                    self.scanner.print_line_error()
                     print("        Device:", deviceToCheck)
                     return False
             elif conCount != numConnects:
                 self.error_handler.log_error("Sem", 1, 1)
+                self.scanner.print_line_error()
                 print("        Device:", deviceToCheck)
                 return False
         return True
@@ -995,9 +996,8 @@ class Parser:
         #If the error count is 0, build the circuit
         if self.error_handler.get_error_count ==0:
             self.create_devices()
-            self.create_monitors()
             self.create_network()
+            self.create_monitors()
 
-        # TODO be more rigorous with handling EOF at the end
         print("Total Error Count:", self.error_handler.get_error_count)
         return self.error_handler.get_error_count == 0
