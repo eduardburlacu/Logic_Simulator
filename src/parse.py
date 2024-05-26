@@ -223,6 +223,9 @@ class Parser:
             - None for unexpected EOF
         EBNF: (alpha | "_"), {alpha | digit | "_" } ;
         """
+        if self.symbol.type == self.scanner.EOF:
+            return True
+        
         if self.symbol.type != self.scanner.NAME:
             #  Invalid Symbol Error
             self.error_handler.log_error("Syn", 6, 0)
@@ -335,6 +338,7 @@ class Parser:
 
             if not self.next_symbol():
                 # Unexpected EOF
+                #print("hi")
                 self.counter -= 1
                 self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 5, 0)
@@ -411,6 +415,7 @@ class Parser:
 
         if not self.next_symbol():
             # Unexpected EOF
+            #print("hi")
             self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
@@ -455,6 +460,7 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
+        
         if not self.next_symbol():
             #  unexpected EOF
             self.error_handler.log_error("Syn", 5, 0)
@@ -711,7 +717,7 @@ class Parser:
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
-            print(self.decode())
+            #print(self.decode())
             if con is None:
                 # unexpected eof
                 # print("if con")  # DEBUG
@@ -797,7 +803,7 @@ class Parser:
                 return None
             param = self.decode()
             if param not in {"Q", "QBAR"}:
-                self.error_handler.log_error("Syn", 6, 2)
+                self.error_handler.log_error("Sem", 7, 2)
                 self.scanner.print_line_error()
                 return False
             if not self.next_symbol():
@@ -847,7 +853,7 @@ class Parser:
                     return None
                 param = self.decode()
                 if param not in {"Q", "QBAR"}:
-                    self.error_handler.log_error("Syn", 6, 2) #what error is this
+                    self.error_handler.log_error("Syn", 7, 2) #what error is this
                     self.scanner.print_line_error()
                     return False
 
@@ -924,7 +930,6 @@ class Parser:
             #Exceptions for SWITCH and CLOCK; they cannot have inputs
             if deviceType in ["SWITCH", "CLOCK"]:
                 continue
-            
             #Count up number of connections
             conCount = 0
             for connect in self.connections_defined:
@@ -934,7 +939,14 @@ class Parser:
                 #print(conCount) # DEBUG
             
             # If not equal to specified number, error
-            if conCount != numConnects:
+            if deviceType == "DTYPE":
+                if conCount == 4:
+                    return True
+                self.error_handler.log_error("Sem", 1, 1)
+                print("        Device:", deviceToCheck)
+                self.scanner.print_line_error()
+                return False
+            if conCount != numConnects and deviceType != "DTYPE":
                 self.error_handler.log_error("Sem", 1, 1)
                 print("        Device:", deviceToCheck)
                 self.scanner.print_line_error()  # Insert from Nikko

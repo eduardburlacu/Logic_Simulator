@@ -19,7 +19,7 @@ def parser():
     pMonitors = Monitors(pNames, pDevices, pNetwork)
 
     scanner = Scanner(
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "missing_comma.txt")),
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "accept_no_connection.txt")),
         #os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "nor.txt")),
         names_map = pNames,
         devices_map = Names(["CLOCK", "SWITCH", "AND", "NAND","OR", "NOR", "XOR","DTYPE"]),
