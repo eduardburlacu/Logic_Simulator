@@ -265,7 +265,7 @@ class Gui(wx.Frame):
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
 
         # Dropdown list options
-        dropdown_options = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"]
+        dropdown_options = ["AND1", "OR1", "SW1", "QBAR"]
         self.dropdown = wx.ComboBox(self, wx.ID_ANY, choices=dropdown_options, style=wx.CB_READONLY)
         self.dropdown.Bind(wx.EVT_COMBOBOX, self.on_dropdown)
 
@@ -460,7 +460,21 @@ class Gui(wx.Frame):
             return id_to_name_list[device_number]
         else:
             return str(device_number)
-        
+
+    def on_add_button(self, event):
+        """Handle the event when the user clicks the add button."""
+        selection = self.dropdown.GetStringSelection()
+        if selection and selection not in self.added_list.GetItems():
+            self.added_list.Append(selection)
+            text = f"Added '{selection}' to the list."
+            self.canvas.render(text)
+
+            # Add the device to monitors
+            device_id = self.names.query(selection.split(".")[0])
+            output_id = None
+            if device_id is not None:
+                self.monitors.make_monitor(device_id, output_id, self.cycle_count)
+
     def on_remove_button(self, event):
         """Handle the event when the user clicks the remove button."""
         selection = self.added_list.GetSelection()
@@ -470,13 +484,11 @@ class Gui(wx.Frame):
             text = f"Removed '{item}' from the list."
             self.canvas.render(text)
 
-    def on_add_button(self, event):
-        """Handle the event when the user clicks the add button."""
-        selection = self.dropdown.GetStringSelection()
-        if selection and selection not in self.added_list.GetItems():
-            self.added_list.Append(selection)
-            text = f"Added '{selection}' to the list."
-            self.canvas.render(text)
+            # Remove the device from monitors
+            device_id = self.names.query(item.split(".")[0])
+            output_id = None
+            if device_id is not None:
+                self.monitors.remove_monitor(device_id, output_id)
 
     def on_dropdown(self, event):
         """Handle the event when the user selects an option from the dropdown list."""
