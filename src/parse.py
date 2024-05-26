@@ -941,15 +941,14 @@ class Parser:
             # If not equal to specified number, error
             if deviceType == "DTYPE":
                 if conCount == 4:
-                    return True
+                    continue
+                else:
+                    self.error_handler.log_error("Sem", 1, 1)
+                    print("        Device:", deviceToCheck)
+                    return False
+            elif conCount != numConnects:
                 self.error_handler.log_error("Sem", 1, 1)
                 print("        Device:", deviceToCheck)
-                self.scanner.print_line_error()
-                return False
-            if conCount != numConnects and deviceType != "DTYPE":
-                self.error_handler.log_error("Sem", 1, 1)
-                print("        Device:", deviceToCheck)
-                self.scanner.print_line_error()  # Insert from Nikko
                 return False
         return True
 
@@ -982,9 +981,9 @@ class Parser:
         if parsed_monitors is not True:
             return False
 
-        self.create_devices()
-        self.create_monitors()
-        self.create_network()
+        #self.create_devices()
+        #self.create_monitors()
+        #self.create_network()
 
         # TODO be more rigorous with handling EOF at the end
         print("Total Error Count:", self.error_handler.get_error_count)
