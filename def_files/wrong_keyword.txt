@@ -1,2 +1,2 @@
-DEVICE:
+DEVICES:
     GATE1 = I [2] ;

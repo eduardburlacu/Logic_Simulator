@@ -24,19 +24,19 @@ class SyntaxErrorsC():
         print("Syntax Error: One Name for Multiple Devices, in "
                + POSITIONS[pos])
 
-    def ParameterLetter(pos):
+    def InvalidParameter(pos):
         """raise Error."""
-        print("Syntax Error: Parameter Cannot Be A Letter, in "
+        print("Syntax Error: Invalid Parameter Value, in "
                + POSITIONS[pos])
 
     def UnexpectedEOF(pos):
         """raise Error."""
-        print("Syntax Error: Unexpected EOF encountered, in "
+        print("Syntax Error: Unexpected EOF Encountered, in "
                + POSITIONS[pos])
 
     def InvalidSymbol(pos):
         """raise Error."""
-        print("Syntax Error: Symbol not valid, in "
+        print("Syntax Error: Invalid Symbol, in "
                + POSITIONS[pos])
 
     def UnexpectedKeyword(pos):
@@ -97,7 +97,12 @@ class SemanticErrorsC:
         print("Semantic Error: Device Does Not Exist, in "
                + POSITIONS[pos])
 
-    def PinNotExist(pos, messageC=None):
+    def PinNotExist(pos):
         """raise Error."""
         print("Semantic Error: Input Pin Does Not Exist, in "
+               + POSITIONS[pos])
+        
+    def ParameterNotAllowed(pos):
+        """raise Error."""
+        print("Semantic Error: No Parameter Allowed, in "
                + POSITIONS[pos])

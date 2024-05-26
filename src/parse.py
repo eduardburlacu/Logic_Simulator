@@ -66,7 +66,7 @@ class ErrorHandler:
             elif error_code == 3:
                 SyntaxErrorsC.MultipleAssignments(idx)
             elif error_code == 4:
-                SyntaxErrorsC.ParameterLetter(idx)
+                SyntaxErrorsC.InvalidParameter(idx)
             elif error_code == 5:
                 SyntaxErrorsC.UnexpectedEOF(idx)
             elif error_code == 6:
@@ -96,6 +96,8 @@ class ErrorHandler:
                 SemanticErrorsC.DeviceNotExist(idx)
             elif error_code == 9:
                 SemanticErrorsC.PinNotExist(idx)
+            elif error_code == 10:
+                SemanticErrorsC.ParameterNotAllowed(idx)
             else:
                 raise ValueError("Invalid Error Code for Semantic")
 
@@ -176,7 +178,7 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
             return True
 
-    def next_line(self):
+    def next_line(self, flag=True):
         """
         Return the following.
 
@@ -191,7 +193,7 @@ class Parser:
         while not self.detect(";", self.scanner.PUNCT):
             if self.decode() in {"CONNECTIONS", "MONITORS"}:
                 return False
-            if not self.next_symbol():
+            if not self.next_symbol() and flag:
                 # Check EOF char
                 return None
         return True
@@ -372,6 +374,13 @@ class Parser:
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
+        else:
+            if self.decode() != ";":
+                self.counter -= 1
+                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.error_handler.log_error("Sem", 10, 0)
+                self.scanner.print_line_error()
+                return False
 
         self.device_types.append((device_type, parameter))
 
@@ -406,7 +415,7 @@ class Parser:
             self.scanner.print_line_error()
             return None
 
-        type_check= self._device_type()
+        type_check = self._device_type()
 
         if type_check is None:
             # unexpected EOF
@@ -454,7 +463,7 @@ class Parser:
 
         elif self.decode() != ":":
             #  Invalid Symbol
-            self.error_handler.log_error("Syn", 6, 0)
+            self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
 
@@ -534,7 +543,11 @@ class Parser:
         """
         # print(F"________CURRENT SYMBOL
         #      IS {self.decode()} {self.symbol.type} _____")
+        if self.symbol.type == self.scanner.EOF:
+            return True
+        
         if self.symbol.type != self.scanner.NAME:
+            #print("eof")
             self.error_handler.log_error("Syn", 6, 1)
             self.scanner.print_line_error()
             return False
@@ -636,13 +649,22 @@ class Parser:
                 self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()  # Insert from Nikko
                 return False
-
+        
+        # want to check if connection already exists; no input pin can be connected to an output
+        for connect2 in self.connections_defined:
+            if (any(in_pin_arg in i for i in connect2)):
+                self.error_handler.log_error("Sem", 5, 1)
+                self.scanner.print_line_error()  # Insert from Nikko
+                return False
+        #if (any('geeksforgeeks' in i for i in test_tuple)):
+        #print("geeksforgeeks is present")
+        
         self.connections_defined.append(
             ((out_pin, out_pin_arg), (in_pin, in_pin_arg)))
         # TODO MAKE IT CORRESPONDING TO API
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
@@ -651,6 +673,7 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
+        #Can now create the devices
         return True
 
     def parse_connections(self) -> Union[bool, None]:
@@ -666,37 +689,39 @@ class Parser:
         """
         # Handle the case when the start word is not CONNECTIONS
         if not self.detect("CONNECTIONS", self.scanner.KEYWORD):
-            self.error_handler.log_error("Syn", 6, 0)
+            self.error_handler.log_error("Syn", 6, 1)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
             #  Unexpected EOF
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
         elif self.decode() != ":":
-            self.error_handler.log_error("Syn", 8, 0)
+            self.error_handler.log_error("Syn", 8, 1)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 1)
             self.scanner.print_line_error()
             return None
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
+            print(self.decode())
             if con is None:
                 # unexpected eof
+                # print("if con")  # DEBUG
                 self.error_handler.log_error("Syn", 5, 1)
                 self.scanner.print_line_error()
                 return None
 
             elif not con:  # If there are errors, try the next line
-                next_line_def = self.next_line()
-
+                next_line_def = self.next_line(flag=False)
+                #print("elif con")  # DEBUG
                 if next_line_def is None:  # flag the eof
                     self.error_handler.log_error("Syn", 5, 1)
                     self.scanner.print_line_error()
@@ -710,8 +735,7 @@ class Parser:
             if not self.next_symbol():
                 # Here it should be True and not None because the
                 # Monitors is not existent(allowed by EBNF) and you reach EOF
-                return True
-
+                return True 
         return True
 
     def parse_monitors(self) -> Union[bool, None]:
@@ -823,7 +847,7 @@ class Parser:
                     return None
                 param = self.decode()
                 if param not in {"Q", "QBAR"}:
-                    self.error_handler.log_error("Syn", 6, 2)
+                    self.error_handler.log_error("Syn", 6, 2) #what error is this
                     self.scanner.print_line_error()
                     return False
 
@@ -849,31 +873,73 @@ class Parser:
     def create_devices(self):
         """Creates all device objects from list of device names."""
         for device_name in self.devices_defined:
-            # d is of form (device_type, parameter)
             device_kind, device_property = self.device_types[self.devices_defined[device_name]]
 
-            #print('\n',self.names.query(device_name), self.names.query(device_kind), device_property)
             errorOut = self.devices.make_device( 
                 self.scanner.names_map.query(device_name),
                 device_kind,
                 device_property
                 )
-            if errorOut != self.devices.NO_ERROR:
-                print(errorOut)
-                #with ValueError as e:
-                #    print(e)
 
-    def create_network(self):
-        """Creates all connections between devices."""
-        for c in self.connections_defined:
-            # c is of form  ((out_pin, out_pin_arg), (in_pin, in_pin_arg))
-            self.network.make_connection(c[0][0], c[0][1], c[1][0], c[1][1])
+            if errorOut == self.devices.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF {device_name, device_kind, device_property}")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
 
     def create_monitors(self):
         """Place all monitor on required output."""
-        for m in self.monitors_defined:
-            # m is of form (monitor, param)
-            self.monitors.make_monitor(m[0], m[1])
+        for monitor, port in self.monitors_defined:
+            device_id = self.names.query(monitor)
+            output_id = self.names.query(port)
+            errorOut = self.monitors.make_monitor(device_id, output_id)
+            if errorOut == self.monitors.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF {monitor}.{port}")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
+
+    def create_network(self):
+        """Creates all connections between devices."""
+        for (out_pin, out_pin_arg), (in_pin, in_pin_arg) in self.connections_defined:
+            errorOut = self.network.make_connection(
+                first_device_id = self.names.query(out_pin),
+                first_port_id=self.names.query(out_pin_arg),
+                second_device_id=self.names.query(in_pin),
+                second_port_id=self.names.query(in_pin_arg)
+            )
+            if errorOut == self.network.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF ")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
+
+    #TODO: Range of inputs from I1 to I(n)
+    def check_input_count(self):
+        """Checks whether the amount of inputs is correct 
+        per devices in def file"""
+        #Check each input pin has been assigned:
+        for deviceToCheck in self.devices_defined:
+            # Unpack Edi's Funky Datastructure
+            deviceType = self.device_types[self.devices_defined[deviceToCheck]][0]
+            numConnects = self.device_types[self.devices_defined[deviceToCheck]][1]
+            
+            #Exceptions for SWITCH and CLOCK; they cannot have inputs
+            if deviceType in ["SWITCH", "CLOCK"]:
+                continue
+            
+            #Count up number of connections
+            conCount = 0
+            for connect in self.connections_defined:
+                #print(connect) # DEBUG
+                if (any(deviceToCheck in i for i in connect)):
+                    conCount += 1
+                #print(conCount) # DEBUG
+            
+            # If not equal to specified number, error
+            if conCount != numConnects:
+                self.error_handler.log_error("Sem", 1, 1)
+                print("        Device:", deviceToCheck)
+                self.scanner.print_line_error()  # Insert from Nikko
+                return False
+        return True
 
     def parse_network(self) -> bool:
         """Parse the circuit definition file."""
@@ -885,19 +951,29 @@ class Parser:
                 return False
 
         parsed_connections = self.parse_connections()
-
+        #print(f"PARSED IS{parsed_connections}") #DEBUG
         if parsed_connections is None:
             return False
         elif not parsed_connections:
             if not self.next_block():
                 return False
+        
+        # check if all inputs are assigned
+        inputs_correct = self.check_input_count()
+        if inputs_correct is False:
+            return False
+        if self.symbol is None:
+            print("Total Error Count:", self.error_handler.get_error_count)
+            return self.error_handler.get_error_count == 0
 
         parsed_monitors = self.parse_monitors()
         if parsed_monitors is not True:
             return False
 
         self.create_devices()
-        #self.create_network()
-        #self.create_monitors()
+        self.create_monitors()
+        self.create_network()
+
         # TODO be more rigorous with handling EOF at the end
-        return True
+        print("Total Error Count:", self.error_handler.get_error_count)
+        return self.error_handler.get_error_count == 0

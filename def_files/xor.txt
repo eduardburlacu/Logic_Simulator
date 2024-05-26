@@ -10,4 +10,3 @@ CONNECTIONS:
 
 MONITORS:
     C1, C2, X1  ;
-
