@@ -280,7 +280,7 @@ class Gui(wx.Frame):
 
         # Add sample items to the list control
         for i in range(5):
-            index = self.list_ctrl.InsertItem(i, f'Switch {i+1}')
+            index = self.list_ctrl.InsertItem(i, f'SW{i+1}')
             self.list_ctrl.SetItem(index, 1, 'Off')
 
         # Bind events to widgets
@@ -509,3 +509,12 @@ class Gui(wx.Frame):
         new_state = 'On' if current_state == 'Off' else 'Off'
         self.list_ctrl.SetItem(index, 1, new_state)
         self.canvas.render(f"Item {index+1} state changed to: {new_state}")
+     
+        # Update the state of the switch in the devices
+        switch_name = self.list_ctrl.GetItem(index, 0).GetText()
+        name_id = self.names.query(switch_name)
+        if name_id is not None:
+            if new_state == 'On':
+                self.devices.set_switch(name_id, 1)
+            elif new_state == 'Off':
+                self.devices.set_switch(name_id, 0)
