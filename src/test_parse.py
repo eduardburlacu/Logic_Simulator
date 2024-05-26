@@ -19,7 +19,7 @@ def parser():
     pMonitors = Monitors(pNames, pDevices, pNetwork)
 
     scanner = Scanner(
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "missing_semicolon.txt")),
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "missing_comma.txt")),
         #os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "nor.txt")),
         names_map = pNames,
         devices_map = Names(["CLOCK", "SWITCH", "AND", "NAND","OR", "NOR", "XOR","DTYPE"]),
@@ -43,7 +43,7 @@ def test_parse_network(parser):
     parse = parser.parse_network()
     #print(f"XOR TRUE ID IS {parser.devices.XOR}")
     #print(parser.names.names_list)
-    assert parse is True
+    assert parse is False
 
 def parse_all():
     def claim(l:str):
