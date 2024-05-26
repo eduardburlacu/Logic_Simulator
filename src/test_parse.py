@@ -43,7 +43,7 @@ def test_parse_network(parser):
     parse = parser.parse_network()
     #print(f"XOR TRUE ID IS {parser.devices.XOR}")
     #print(parser.names.names_list)
-    assert parse is False
+    assert parse is True
 
 def parse_all():
     def claim(l:str):

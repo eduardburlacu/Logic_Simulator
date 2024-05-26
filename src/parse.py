@@ -356,6 +356,17 @@ class Parser:
 
             parameter = int(self.scanner.decode(self.symbol)) #self.symbol.id
 
+            if device_type == "SWITCH" and parameter not in {0,1}:
+                self.counter -= 1
+                self.error_handler.log_error("Sem", 5, 0) ##TODO BY NIKKO, RAISE CORRECT ERROR HERE
+                self.scanner.print_line_error()
+                return False
+            elif device_type != "CLOCK" and parameter>16:
+                self.counter -= 1
+                self.error_handler.log_error("Sem", 5, 0) ##TODO BY NIKKO, RAISE CORRECT ERROR HERE
+                self.scanner.print_line_error()
+                return False
+
             if not self.next_symbol():
                 #  Unexpected EOF
                 self.counter -= 1
@@ -981,9 +992,11 @@ class Parser:
         if parsed_monitors is not True:
             return False
 
-        #self.create_devices()
-        #self.create_monitors()
-        #self.create_network()
+        #If the error count is 0, build the circuit
+        if self.error_handler.get_error_count ==0:
+            self.create_devices()
+            self.create_monitors()
+            self.create_network()
 
         # TODO be more rigorous with handling EOF at the end
         print("Total Error Count:", self.error_handler.get_error_count)
