@@ -43,14 +43,11 @@ def main(arg_list):
         sys.exit()
 
     # Initialise instances of the four inner simulator classes
-    # names = Names()
-    # devices = Devices(names)
-    # network = Network(names, devices)
-    # monitors = Monitors(names, devices, network)
-    names = None
-    devices = None
-    network = None
-    monitors = None
+    names = Names()
+    devices = Devices(names)
+    network = Network(names, devices)
+    monitors = Monitors(names, devices, network)
+
 
     for option, path in options:
         if option == "-h":  # print the usage message
@@ -58,11 +55,12 @@ def main(arg_list):
             sys.exit()
         elif option == "-c":  # use the command line user interface
             scanner = Scanner(
-                path,
-                names,
-                devices=Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK", "OR", "NOR", "XOR"]),
-                keywords=Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
-                punct=Names([",", ".", ":", ";", ">", "[", "]", "="])
+                path = path,
+                names_map=names,
+                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR", "XOR", "DTYPE"]),
+                keywords_map=Names(
+                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
+                punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
             )
 
             parser = Parser(names, devices, network, monitors, scanner)
@@ -81,10 +79,10 @@ def main(arg_list):
         [path] = arguments
         scanner = Scanner(
             path,
-            names,
-            devices = Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK","OR", "NOR", "XOR"]),
-            keywords = Names(["DEVICES", "CONNECTIONS", "MONITOR", "DATA", "SET", "CLEAR", "Q", "QBAR","I"]),
-            punct= Names([ ",", ".", ":", ";", ">", "[", "]", "=" ])
+            names_map=Names(),
+            devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK", "OR", "NOR", "XOR", "DTYPE"]),
+            keywords_map=Names(["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
+            punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
         )
         parser = Parser(names, devices, network, monitors, scanner)
         if parser.parse_network():
