@@ -415,7 +415,7 @@ class Parser:
             self.scanner.print_line_error()
             return None
 
-        type_check= self._device_type()
+        type_check = self._device_type()
 
         if type_check is None:
             # unexpected EOF
@@ -673,6 +673,7 @@ class Parser:
             self.scanner.print_line_error()
             return False
 
+        #Can now create the devices
         return True
 
     def parse_connections(self) -> Union[bool, None]:
@@ -872,32 +873,43 @@ class Parser:
     def create_devices(self):
         """Creates all device objects from list of device names."""
         for device_name in self.devices_defined:
-            # d is of form (device_type, parameter)
             device_kind, device_property = self.device_types[self.devices_defined[device_name]]
 
-            #print('\n',self.names.query(device_name), self.names.query(device_kind), device_property)
             errorOut = self.devices.make_device( 
                 self.scanner.names_map.query(device_name),
                 device_kind,
                 device_property
                 )
-            if errorOut != self.devices.NO_ERROR:
-                print(errorOut)
-                #with ValueError as e:
-                #    print(e)
-            #TODO: Catch Errors Specific to Certain Devices, eg. SWITCH[3]
 
-    def create_network(self):
-        """Creates all connections between devices."""
-        for c in self.connections_defined:
-            # c is of form  ((out_pin, out_pin_arg), (in_pin, in_pin_arg))
-            self.network.make_connection(c[0][0], c[0][1], c[1][0], c[1][1])
+            if errorOut == self.devices.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF {device_name, device_kind, device_property}")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
 
     def create_monitors(self):
         """Place all monitor on required output."""
-        for m in self.monitors_defined:
-            # m is of form (monitor, param)
-            self.monitors.make_monitor(m[0], m[1])
+        for monitor, port in self.monitors_defined:
+            device_id = self.names.query(monitor)
+            output_id = self.names.query(port)
+            errorOut = self.monitors.make_monitor(device_id, output_id)
+            if errorOut == self.monitors.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF {monitor}.{port}")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
+
+    def create_network(self):
+        """Creates all connections between devices."""
+        for (out_pin, out_pin_arg), (in_pin, in_pin_arg) in self.connections_defined:
+            errorOut = self.network.make_connection(
+                first_device_id = self.names.query(out_pin),
+                first_port_id=self.names.query(out_pin_arg),
+                second_device_id=self.names.query(in_pin),
+                second_port_id=self.names.query(in_pin_arg)
+            )
+            if errorOut == self.network.NO_ERROR:
+                print(f"SUCCESFUL CREATION OF ")
+            else:
+                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
 
     #TODO: Range of inputs from I1 to I(n)
     def check_input_count(self):
@@ -959,8 +971,9 @@ class Parser:
             return False
 
         self.create_devices()
-        #self.create_network()
-        #self.create_monitors()
+        self.create_monitors()
+        self.create_network()
+
         # TODO be more rigorous with handling EOF at the end
         print("Total Error Count:", self.error_handler.get_error_count)
         return self.error_handler.get_error_count == 0
