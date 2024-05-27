@@ -78,12 +78,13 @@ def main(arg_list):
 
         [path] = arguments
         scanner = Scanner(
-            path,
-            names_map=Names(),
-            devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "CLK", "OR", "NOR", "XOR", "DTYPE"]),
-            keywords_map=Names(["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
-            punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
-        )
+                path = path,
+                names_map=names,
+                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR", "XOR", "DTYPE"]),
+                keywords_map=Names(
+                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
+                punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
+                )
         parser = Parser(names, devices, network, monitors, scanner)
         if parser.parse_network():
             # Initialise an instance of the gui.Gui() class

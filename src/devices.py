@@ -335,3 +335,14 @@ class Devices:
             error_type = self.BAD_DEVICE
 
         return error_type
+
+    def get_property(self, device_id):
+        """Return the property of the specified device."""
+        device = self.get_device(device_id)
+        if device.clock_half_period is not None:
+            return device.clock_half_period
+        elif device.switch_state is not None:
+            return device.switch_state
+        elif device.dtype_memory is not None:
+            return device.dtype_memory
+        return None
