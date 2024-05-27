@@ -9,6 +9,7 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
+from traceback import print_tb
 from names import Names
 from scanner import Scanner, Symbol
 from devices import Devices
@@ -81,7 +82,7 @@ class ErrorHandler:
             if error_code == 1:
                 SemanticErrorsC.InputNotAssigned(idx)
             elif error_code == 2:
-                SemanticErrorsC.InputToSwitchAssigned(idx)
+                SemanticErrorsC.InputAssigned(idx)
             elif error_code == 3:
                 SemanticErrorsC.ClockPeriodZero(idx)
             elif error_code == 4:
@@ -98,6 +99,8 @@ class ErrorHandler:
                 SemanticErrorsC.PinNotExist(idx)
             elif error_code == 10:
                 SemanticErrorsC.ParameterNotAllowed(idx)
+            elif error_code == 11:
+                SemanticErrorsC.MonitorNotExist(idx)
             else:
                 raise ValueError("Invalid Error Code for Semantic")
 
@@ -222,6 +225,7 @@ class Parser:
             - None for unexpected EOF
         EBNF: (alpha | "_"), {alpha | digit | "_" } ;
         """
+        ct = 0
         if self.symbol.type == self.scanner.EOF:
             return True
 
@@ -239,18 +243,19 @@ class Parser:
             self.scanner.print_line_error()
 
         self.devices_defined[dev_name] = self.counter
-
+        ct += 1
         if not self.next_symbol():
             # Unexpected EOF
             self.error_handler.log_error("Syn", 5, 0)
             self.scanner.print_line_error()
             return None
 
-        elif self.symbol.type != self.scanner.PUNCT:
-            # Invalid Punct
-            self.error_handler.log_error("Syn", 8, 0)
-            self.scanner.print_line_error()
-            return False
+        #elif self.decode() not in {"=",","}:
+        #    # Invalid Punct
+        #    print("hi")
+        #    self.error_handler.log_error("Syn", 8, 0)
+        #    self.scanner.print_line_error()
+        #    return False
 
         while self.decode() == ",":
             if not self.next_symbol():
@@ -274,19 +279,24 @@ class Parser:
                 return False
 
             self.devices_defined[dev_name] = self.counter
-
+            ct+=1
             if not self.next_symbol():
                 # Unexpected EOF
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
-            elif self.symbol.type != self.scanner.PUNCT:
-                self.error_handler.log_error("Syn", 8, 0)
-                self.scanner.print_line_error()
-                return False
+            #elif self.symbol.type != self.scanner.PUNCT:
+            #    self.error_handler.log_error("Syn", 8, 0)
+            #    self.scanner.print_line_error()
+            #    return False
 
+        
         if not self.detect("=", self.scanner.PUNCT):
+            print(self.devices_defined)
+            for e in range(ct):
+                self.devices_defined.popitem()
+            print(self.devices_defined)
             self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
@@ -365,6 +375,12 @@ class Parser:
                 self.counter -= 1
                 self.devices_defined.popitem()
                 self.error_handler.log_error("Sem", 10, 0)
+                self.scanner.print_line_error()
+                return False
+            elif device_type == "CLOCK" and parameter == 0:
+                self.counter -= 1
+                self.devices_defined.popitem()
+                self.error_handler.log_error("Sem", 3, 0)
                 self.scanner.print_line_error()
                 return False
 
@@ -660,6 +676,10 @@ class Parser:
                 return False
             try:
                 x = int(in_pin_arg[1:])  # TODO !!!!!
+                if x > self.device_types[self.devices_defined[in_pin]][1]:
+                    self.error_handler.log_error("Sem", 10, 1)
+                    self.scanner.print_line_error()
+                    return False
             except ValueError as e:  # invalid input
                 self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()
@@ -794,7 +814,7 @@ class Parser:
 
         if not self.next_symbol():
             self.error_handler.log_error("Syn", 5, 0)
-            self.scanner.print_line_error()  # Nikko addition, not sure
+            self.scanner.print_line_error()
             return None
 
         elif self.symbol.type != self.scanner.PUNCT:
@@ -810,8 +830,9 @@ class Parser:
                 self.scanner.print_line_error()
                 return None
             param = self.decode()
-            if param not in {"Q", "QBAR"}:
-                self.error_handler.log_error("Sem", 7, 2)
+            devType = self.device_types[self.devices_defined[monitor]][0]
+            if devType != "DTYPE" or param not in {"Q", "QBAR"}:
+                self.error_handler.log_error("Sem", 11, 2)
                 self.scanner.print_line_error()
                 return False
             if not self.next_symbol():
@@ -825,7 +846,7 @@ class Parser:
                 return False
 
         self.monitors_defined.append((monitor, param))
-
+        # TODO code in whue is same as code before
         # Iterate over all possible monitor points(output ports of devices)
         while self.detect(",", self.scanner.PUNCT):
 
@@ -860,8 +881,10 @@ class Parser:
                     self.scanner.print_line_error()
                     return None
                 param = self.decode()
-                if param not in {"Q", "QBAR"}:
-                    self.error_handler.log_error("Syn", 7, 2)
+                devType = self.device_types[self.devices_defined[monitor]][0]
+                #print(devType)
+                if devType != "DTYPE" or param not in {"Q", "QBAR"}:
+                    self.error_handler.log_error("Sem", 11, 2)
                     self.scanner.print_line_error()
                     return False
 

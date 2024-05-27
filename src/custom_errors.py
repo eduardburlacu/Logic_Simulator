@@ -64,9 +64,9 @@ class SemanticErrorsC:
         print("Semantic Error: Input to Device Unassigned, in "
               + POSITIONS[pos])
 
-    def InputToSwitchAssigned(pos):
+    def InputAssigned(pos):
         """Raise Error."""
-        print("Semantic Error: Input to Switch Assigned, in "
+        print("Semantic Error: Input Not Allowed, in "
               + POSITIONS[pos])
 
     def ClockPeriodZero(pos):
@@ -107,4 +107,9 @@ class SemanticErrorsC:
     def ParameterNotAllowed(pos):
         """Raise Error."""
         print("Semantic Error: Parameter Not Allowed, in "
+              + POSITIONS[pos])
+    
+    def MonitorNotExist(pos):
+        """Raise Error."""
+        print("Semantic Error: Monitor Does Not Exist, in "
               + POSITIONS[pos])
