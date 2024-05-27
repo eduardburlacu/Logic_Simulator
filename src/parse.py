@@ -667,14 +667,14 @@ class Parser:
                 self.scanner.print_line_error()  # Insert from Nikko
                 return False
         
-        # want to check if connection already exists; no input pin can be connected to an output
+        # want to check if connection already exists
+        # check if both the arg and pin show up
         for connect2 in self.connections_defined:
-            if (any(in_pin_arg in i for i in connect2)):
+            if (any(in_pin_arg in i for i in connect2) 
+                and any(in_pin in j for j in connect2)):
                 self.error_handler.log_error("Sem", 5, 1)
                 self.scanner.print_line_error()  # Insert from Nikko
                 return False
-        #if (any('geeksforgeeks' in i for i in test_tuple)):
-        #print("geeksforgeeks is present")
         
         self.connections_defined.append(
             ((out_pin, out_pin_arg), (in_pin, in_pin_arg)))
@@ -945,31 +945,31 @@ class Parser:
             conCount = 0
             for connect in self.connections_defined:
                 #print(connect) # DEBUG
-                if (any(deviceToCheck in i for i in connect)):
+                if deviceToCheck in connect[1]:
                     conCount += 1
                 #print(conCount) # DEBUG
-            
             # If not equal to specified number, error
             if deviceType == "DTYPE":
                 if conCount == 4:
                     continue
                 else:
                     self.error_handler.log_error("Sem", 1, 1)
-                    #self.scanner.print_line_error()
                     print("        Device:", deviceToCheck)
                     errorCount += 1
-            if deviceType == "XOR":
+                    continue
+            elif deviceType == "XOR":
                 if conCount == 2:
                     continue
                 else:
                     self.error_handler.log_error("Sem", 1, 1)
                     print("        Device:", deviceToCheck)
                     errorCount += 1
+                    continue
             elif conCount != numConnects:
                 self.error_handler.log_error("Sem", 1, 1)
-                #self.scanner.print_line_error()
                 print("        Device:", deviceToCheck)
                 errorCount += 1
+                continue
         return errorCount == 0
 
     def parse_network(self) -> bool:

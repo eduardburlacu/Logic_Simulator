@@ -6,8 +6,6 @@ DEVICES:
     clock = CLOCK[05] ;
     input1, input2, set_swi, reset_swi = SWITCH[0] ;
     input3 = SWITCH[1] ;
-
-
 CONNECTIONS:
 	input1 > A.I1 ;
 	input1 > B.I1 ;

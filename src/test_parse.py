@@ -19,7 +19,7 @@ def parser():
     pMonitors = Monitors(pNames, pDevices, pNetwork)
 
     scanner = Scanner(
-        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "xor.txt")),
+        path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "dtype.txt")),
         #os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "def_files", "nor.txt")),
         names_map = pNames,
         devices_map = Names(["CLOCK", "SWITCH", "AND", "NAND","OR", "NOR", "XOR","DTYPE"]),
@@ -47,7 +47,7 @@ def test_parse_network(parser):
 
     assert parse is True
 
-def parse_all():
+def test_parse_all():
     def claim(l:str):
         if l.upper()=="T":return True
         elif l.upper()=="F":return False
@@ -77,6 +77,6 @@ def parse_all():
         )
         parse = parser.parse_network()
         #assert parse == truth
-        #outcomes.append(parse)
+        outcomes.append(parse)
 
     print(outcomes)
