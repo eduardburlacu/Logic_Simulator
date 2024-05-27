@@ -251,17 +251,6 @@ class Gui(wx.Frame):
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
 
-        # Assign variable to the other modules
-        self.names = names
-        self.devices = devices
-        self.monitors = monitors
-        self.network = network
-        self.monitored_list = self.get_monitored_devices_list(devices, names)
-        self.running = False
-        self.cycle_count = 10
-        self.devices_list = self.get_devices(devices, names)
-        self.signals_list = self.get_signals_list(names, self.cycle_count)
-
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
 
@@ -275,6 +264,17 @@ class Gui(wx.Frame):
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
+
+        # Assign variable to the other modules
+        self.names = names
+        self.devices = devices
+        self.monitors = monitors
+        self.network = network
+        self.monitored_list = self.get_monitored_devices_list(devices, names)
+        self.running = False
+        self.cycle_count = 10
+        self.devices_list = self.get_devices(devices, names)
+        self.signals_list = self.get_signals_list(names, self.spin.GetValue())
 
         # Dropdown list options
         added_options = self.monitored_list
@@ -355,7 +355,6 @@ class Gui(wx.Frame):
         """Handle the event when the user changes the spin control value."""
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(spin_value)])
-        self.canvas.render(text)
 
     
     def on_run_button(self, event):
@@ -368,7 +367,7 @@ class Gui(wx.Frame):
 
         # Record signals for monitored devices
         self.signals_list = self.get_signals_list(
-            self.names, self.cycle_count
+            self.names, self.spin.GetValue()
         )
 
         # Render the canvas, set to running
@@ -382,7 +381,7 @@ class Gui(wx.Frame):
             self.on_run_button("")
             return
         self.signals_list = self.get_signals_list(
-            self.names, self.cycle_count
+            self.names, self.spin.GetValue()
         )
         self.canvas.render(self.signals_list)
 
