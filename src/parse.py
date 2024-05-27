@@ -103,7 +103,7 @@ class ErrorHandler:
                 SemanticErrorsC.MonitorNotExist(idx)
             else:
                 raise ValueError("Invalid Error Code for Semantic")
-
+        print("\n")
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -293,7 +293,7 @@ class Parser:
 
         
         if not self.detect("=", self.scanner.PUNCT):
-            print(self.devices_defined)
+            self.counter -= 1
             for e in range(ct):
                 self.devices_defined.popitem()
             print(self.devices_defined)
@@ -600,6 +600,7 @@ class Parser:
 
         out_pin_arg = None
         # Check the case when the output port needs arguments
+        print(self.devices_defined[out_pin])
         if self.device_types[
                 self.devices_defined[out_pin]
                 ][0] == "DTYPE":
@@ -663,8 +664,13 @@ class Parser:
         in_pin_arg = self.decode()
         # Check the case when the input port needs arguments
         if self.device_types[self.devices_defined[in_pin]][0] == "DTYPE":
-
             if in_pin_arg not in {"DATA", "CLK", "SET", "CLEAR"}:
+                self.error_handler.log_error("Sem", 9, 1)
+                self.scanner.print_line_error()
+                return False
+        
+        elif self.device_types[self.devices_defined[in_pin]][0] == "XOR":
+            if in_pin_arg not in {"I1", "I2"}:
                 self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()
                 return False
@@ -676,6 +682,8 @@ class Parser:
                 return False
             try:
                 x = int(in_pin_arg[1:])  # TODO !!!!!
+                print(x)
+                print(self.device_types[self.devices_defined[in_pin]])
                 if x > self.device_types[self.devices_defined[in_pin]][1]:
                     self.error_handler.log_error("Sem", 10, 1)
                     self.scanner.print_line_error()
@@ -745,7 +753,8 @@ class Parser:
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
-            # print(self.decode())
+            print("hahahahahha")
+            print(con)
             if con is None:
                 # unexpected eof
                 # print("if con")  # DEBUG
@@ -764,7 +773,7 @@ class Parser:
                 elif not next_line_def:  # unexpected keyword encountered
                     self.error_handler.log_error("Syn", 7, 1)
                     self.scanner.print_line_error()
-                    return False
+                    #return False
 
             if not self.next_symbol():
                 # Here it should be True and not None because the
@@ -806,7 +815,8 @@ class Parser:
             return None
 
         monitor = self.decode()
-
+        print(self.devices_defined)
+        #print(monitor)
         if monitor not in self.devices_defined:
             self.error_handler.log_error("Sem", 8, 2)
             self.scanner.print_line_error()
@@ -995,7 +1005,7 @@ class Parser:
                 print("        Device:", deviceToCheck)
                 errorCount += 1
                 continue
-        return errorCount == 0
+
 
     def parse_network(self) -> bool:
         """Parse the circuit definition file."""
@@ -1007,7 +1017,8 @@ class Parser:
                 return False
 
         parsed_connections = self.parse_connections()
-        # print(f"PARSED IS{parsed_connections}") #DEBUG
+        print(f"PARSED IS{parsed_connections}") #DEBUG
+
         if parsed_connections is None:
             return False
         elif not parsed_connections:
@@ -1015,9 +1026,8 @@ class Parser:
                 return False
 
         # check if all inputs are assigned
-        inputs_correct = self.check_input_count()
-        if inputs_correct is False:
-            return False
+        self.check_input_count()
+
         if self.symbol is None:
             print("Total Error Count:", self.error_handler.get_error_count)
             return self.error_handler.get_error_count == 0
