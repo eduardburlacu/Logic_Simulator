@@ -268,7 +268,6 @@ class Parser:
             dev_name = self.decode()
 
             if dev_name in self.devices_defined:
-                # TODO HANDLE SEMANTIC ERROR: WILL IT BE OVERRIDEN?!?
                 # Already Defined
                 self.error_handler.log_error("Sem", 5, 0)
                 self.scanner.print_line_error()
@@ -330,7 +329,8 @@ class Parser:
 
             if self.decode() != "[":
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 8, 0)
                 self.scanner.print_line_error()
                 return False
@@ -338,7 +338,8 @@ class Parser:
             if not self.next_symbol():
                 # Unexpected EOF
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
@@ -346,7 +347,8 @@ class Parser:
             elif self.symbol.type != self.scanner.NUMBER:
                 # Parameter Letter Error
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 4, 0)
                 self.scanner.print_line_error()
                 return False
@@ -355,11 +357,13 @@ class Parser:
 
             if device_type == "SWITCH" and parameter not in {0, 1}:
                 self.counter -= 1
+                self.devices_defined.popitem()
                 self.error_handler.log_error("Sem", 10, 0)
                 self.scanner.print_line_error()
                 return False
             elif device_type != "CLOCK" and parameter > 16:
                 self.counter -= 1
+                self.devices_defined.popitem()
                 self.error_handler.log_error("Sem", 10, 0)
                 self.scanner.print_line_error()
                 return False
@@ -367,13 +371,15 @@ class Parser:
             if not self.next_symbol():
                 #  Unexpected EOF
                 self.counter -= 1
+                self.devices_defined.popitem()
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
             elif self.decode() != "]":
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 8, 0)
                 self.scanner.print_line_error()
                 return False
@@ -381,14 +387,16 @@ class Parser:
             if not self.next_symbol():
                 #  Unexpected EOF Error
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
         else:
             if self.decode() != ";":
                 self.counter -= 1
-                self.devices_defined.pop(list(self.devices_defined)[-1])
+                self.devices_defined.popitem()
+                # self.devices_defined.pop(list(self.devices_defined)[-1])
                 self.error_handler.log_error("Sem", 10, 0)
                 self.scanner.print_line_error()
                 return False
@@ -564,7 +572,6 @@ class Parser:
 
         # Check the device is defined
         out_pin = self.decode()
-
         if out_pin not in self.devices_defined:
             self.error_handler.log_error("Sem", 4, 1)
             self.scanner.print_line_error()
@@ -638,7 +645,6 @@ class Parser:
             self.scanner.print_line_error()
             return None
         in_pin_arg = self.decode()
-
         # Check the case when the input port needs arguments
         if self.device_types[self.devices_defined[in_pin]][0] == "DTYPE":
 
