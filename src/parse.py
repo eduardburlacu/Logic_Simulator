@@ -932,6 +932,7 @@ class Parser:
         """Checks whether the amount of inputs is correct 
         per devices in def file"""
         #Check each input pin has been assigned:
+        errorCount = 0
         for deviceToCheck in self.devices_defined:
             # Unpack Edi's Funky Datastructure
             deviceType = self.device_types[self.devices_defined[deviceToCheck]][0]
@@ -954,15 +955,22 @@ class Parser:
                     continue
                 else:
                     self.error_handler.log_error("Sem", 1, 1)
-                    self.scanner.print_line_error()
+                    #self.scanner.print_line_error()
                     print("        Device:", deviceToCheck)
-                    return False
+                    errorCount += 1
+            if deviceType == "XOR":
+                if conCount == 2:
+                    continue
+                else:
+                    self.error_handler.log_error("Sem", 1, 1)
+                    print("        Device:", deviceToCheck)
+                    errorCount += 1
             elif conCount != numConnects:
                 self.error_handler.log_error("Sem", 1, 1)
-                self.scanner.print_line_error()
+                #self.scanner.print_line_error()
                 print("        Device:", deviceToCheck)
-                return False
-        return True
+                errorCount += 1
+        return errorCount == 0
 
     def parse_network(self) -> bool:
         """Parse the circuit definition file."""
