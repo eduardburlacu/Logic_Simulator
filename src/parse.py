@@ -878,7 +878,7 @@ class Parser:
         return True
 
     def create_devices(self):
-        """Creates all device objects from list of device names."""
+        """Create all device objects from list of device names."""
         for device_name in self.devices_defined:
             device_kind, device_property = self.device_types[
                 self.devices_defined[device_name]]
@@ -890,9 +890,10 @@ class Parser:
                 )
 
             if errorOut == self.devices.NO_ERROR:
-                print(f"SUCCESFUL CREATION OF {device_name}, {device_kind}, {device_property}")
+                print(f"SUCCESFUL CREATION OF {device_name},"
+                      f" {device_kind}, {device_property}")
             else:
-                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
+                print(f"ERROR CODE ENCOUNTERED: {errorOut}")
 
     def create_monitors(self):
         """Place all monitor on required output."""
@@ -903,10 +904,10 @@ class Parser:
             if errorOut == self.monitors.NO_ERROR:
                 print(f"SUCCESFUL CREATION OF {monitor}.{port}")
             else:
-                print(f"ERROR CODE ENCOUNTERED:{errorOut}")
+                print(f"ERROR CODE ENCOUNTERED: {errorOut}")
 
     def create_network(self):
-        """Creates all connections between devices."""
+        """Create all connections between devices."""
         for connection in self.connections_defined:
             (out_pin, out_pin_arg), (in_pin, in_pin_arg) = connection
             errorOut = self.network.make_connection(
@@ -916,14 +917,14 @@ class Parser:
                 second_port_id=self.names.query(in_pin_arg)
             )
             if errorOut == self.network.NO_ERROR:
-                print(f"CON SUCCESS {out_pin}[{out_pin_arg}] > {in_pin}[{in_pin_arg}]")
+                print(f"SUCCESSFUL CREATION OF {out_pin}[{out_pin_arg}]"
+                      f" > {in_pin}[{in_pin_arg}]")
             else:
-                print(f"ERROR: {errorOut}")
+                print(f"ERROR CODE ENCOUNTERED: {errorOut}")
 
     # TODO: Range of inputs from I1 to I(n)
     def check_input_count(self):
-        """Checks whether the amount of inputs is correct
-        per devices in def file"""
+        """Check whether the amount of inputs is correct."""
         # Check each input pin has been assigned:
         errorCount = 0
         for deviceToCheck in self.devices_defined:
