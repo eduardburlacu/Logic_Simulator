@@ -50,7 +50,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def __init__(self, parent, devices, monitors):
         """Initialise canvas properties and useful variables."""
-
         super().__init__(
             parent,
             -1,
@@ -93,7 +92,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
-
         size = self.GetClientSize()
         self.SetCurrent(self.context)
         GL.glDrawBuffer(GL.GL_BACK)
@@ -109,7 +107,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_trace(self, signal, colour, position):
         """Draw a trace for a given signal."""
-
         GL.glColor3f(colour[0], colour[1], colour[2])
         GL.glBegin(GL.GL_LINE_STRIP)
 
@@ -129,7 +126,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def render(self, signals_list):
         """Handle all drawing operations."""
-
         self.SetCurrent(self.context)
         if not self.init:
             # Configure the viewport, modelview and projection matrices
@@ -151,7 +147,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_paint(self, event):
         """Handle the paint event."""
-
         self.SetCurrent(self.context)
         if not self.init:
             # Configure the viewport, modelview and projection matrices
@@ -162,14 +157,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def on_size(self, event):
         """Handle the canvas resize event."""
-
         # Forces reconfiguration of the viewport, modelview and projection
         # matrices on the next paint event
         self.init = False
 
     def on_mouse(self, event):
         """Handle mouse events."""
-
         # Calculate object coordinates of the mouse position
         size = self.GetClientSize()
         ox = (event.GetX() - self.pan_x) / self.zoom
@@ -199,7 +192,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def render_text(self, text, x_pos, y_pos):
         """Handle text drawing operations."""
-
         GL.glColor3f(
             self.TEXT_COLOUR[0], self.TEXT_COLOUR[1], self.TEXT_COLOUR[2]
         )
@@ -214,6 +206,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
+
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -239,7 +232,6 @@ class Gui(wx.Frame):
     """
 
     def __init__(self, title, path, names, devices, network, monitors):
-
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
 
@@ -260,7 +252,8 @@ class Gui(wx.Frame):
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
-        self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" " + "Available" + 30*" " + "Current")
+        self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
+                                    + "Available" + 30*" " + "Current")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
@@ -284,9 +277,10 @@ class Gui(wx.Frame):
         # List to display added options
         self.added_list = wx.ListBox(self, wx.ID_ANY, choices=added_options)
         self.added_list.Bind(wx.EVT_LISTBOX, self.on_listbox_selection)
-        
+
         # Create the list control for items with on/off states
-        self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_HRULES | wx.LC_VRULES)
+        self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT
+                                     | wx.LC_HRULES | wx.LC_VRULES)
         self.list_ctrl.InsertColumn(0, 'Input', width=140)
         self.list_ctrl.InsertColumn(1, 'State', width=60)
 
@@ -304,8 +298,9 @@ class Gui(wx.Frame):
         self.continue_button.Bind(wx.EVT_BUTTON, self.on_continue_button)
         self.add_button.Bind(wx.EVT_BUTTON, self.on_add_button)
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
-        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_list_item_activated)
-		
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
+                            self.on_list_item_activated)
+
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -316,29 +311,29 @@ class Gui(wx.Frame):
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
-		# ---Button Configuration
+        # Button Configuration
         button_sizer1.Add(self.run_button, 1, wx.ALL, 0)
         button_sizer1.Add(self.continue_button, 1, wx.ALL, 0)
         button_sizer2.Add(self.add_button, 1, wx.ALL, 0)
         button_sizer2.Add(self.remove_button, 1, wx.ALL, 0)
 
-		# ---Simulation Cycles
+        # Simulation Cycles
         side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
-        
-        # ---Monitors with Dropdown List and Added List
+
+        # Monitors with Dropdown List and Added List
         side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.textMs, 1, wx.EXPAND | wx.ALL, 10)
         dropdown_sizer.Add(self.dropdown, 1, wx.EXPAND | wx.ALL, 10)
         dropdown_sizer.Add(self.added_list, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(dropdown_sizer, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer2, 1, wx.EXPAND | wx.ALL, 10)
-        
-        # ---Set Switches
+
+        # Set Switches
         side_sizer.Add(self.textS, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.list_ctrl, 3, wx.EXPAND | wx.ALL, 10)
-		
+
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
 
@@ -356,10 +351,8 @@ class Gui(wx.Frame):
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(spin_value)])
 
-    
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
-
         # Reset monitors
         self.monitors.reset_monitors()
         # Restart devices
@@ -376,7 +369,6 @@ class Gui(wx.Frame):
 
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
-
         if not self.running:
             self.on_run_button("")
             return
@@ -393,7 +385,7 @@ class Gui(wx.Frame):
 
             # Add the device to monitors
             device_id = self.names.query(selection.split(".")[0])
-            
+
             if len(selection.split(".")) == 2:
                 if selection.split(".")[1] == 'Q':
                     output_id = 12
@@ -402,11 +394,12 @@ class Gui(wx.Frame):
             else:
                 output_id = None
             if device_id is not None:
-                self.monitors.make_monitor(device_id, output_id, self.cycle_count)
+                self.monitors.make_monitor(device_id, output_id,
+                                           self.cycle_count)
 
         self.dropdown.Delete(index)
         self.added_list.Append(selection)
-        
+
         if not self.running:
             return
         self.signals_list = self.on_run_button("")
@@ -417,10 +410,10 @@ class Gui(wx.Frame):
         selection = self.added_list.GetSelection()
         if selection != wx.NOT_FOUND:
             item = self.added_list.GetString(selection)
-                        
+
             # Remove the device from monitors
             device_id = self.names.query(item.split(".")[0])
-           
+
             if len(item.split(".")) == 2:
                 if item.split(".")[1] == 'Q':
                     output_id = 12
@@ -429,19 +422,19 @@ class Gui(wx.Frame):
             else:
                 output_id = None
             if device_id is not None:
-                self.monitors.remove_monitor(device_id, output_id)
-            
+                self.monitors.remove_monitor(device_id,
+                                             output_id)
+
             self.added_list.Delete(selection)
             self.dropdown.Append(item)
-        
+
         if not self.running:
             return
         self.signals_list = self.on_run_button("")
         self.canvas.render(self.signals_list)
 
     def get_signals_list(self, names, cycle_count):
-        """Returns a list of lists of the signals of the monitored devices"""
-
+        """Return a list of lists of the signals of the monitors."""
         signals_list = []
         self.run(cycle_count)
         for id_pair in self.monitors.monitors_dictionary.items():
@@ -460,15 +453,13 @@ class Gui(wx.Frame):
         return signals_list
 
     def run(self, cycles):
-        """Runs the circuit for a given number of cycles."""
-
+        """Run the circuit for a given number of cycles."""
         for _ in range(cycles):
             if self.network.execute_network():
                 self.monitors.record_signals()
 
     def get_devices(self, devices, names):
-        """Returns a list of lists, with each element having id, name, value"""
-
+        """Return a list of lists, with each element having id, name, value."""
         all_devices_list = []
         for device in devices.devices_list:
             # Unique condition for DTYPE
@@ -479,7 +470,8 @@ class Gui(wx.Frame):
                 # D.Q
                 if (device.device_id, 12) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".Q")
-                    device_list.append(self.get_device_string(device.device_kind))
+                    device_list.append(
+                        self.get_device_string(device.device_kind))
                     device_list.append(devices.get_property(id))
                     all_devices_list.append(device_list)
                     device_list = []
@@ -487,7 +479,8 @@ class Gui(wx.Frame):
                 # D.QBAR
                 if (device.device_id, 13) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".QBAR")
-                    device_list.append(self.get_device_string(device.device_kind))
+                    device_list.append(
+                        self.get_device_string(device.device_kind))
                     device_list.append(devices.get_property(id))
                     all_devices_list.append(device_list)
 
@@ -496,15 +489,16 @@ class Gui(wx.Frame):
                 device_list = []
                 id = device.device_id
                 device_list.append(names.get_name_string(id))
-                device_list.append(self.get_device_string(device.device_kind))
+                device_list.append(
+                    self.get_device_string(device.device_kind))
                 device_list.append(devices.get_property(id))
 
                 all_devices_list.append(device_list)
-        
+
         return all_devices_list
-    
+
     def get_monitored_devices_list(self, devices, names):
-        """Returns a list of monitored devices."""
+        """Return a list of monitored devices."""
         print(self.monitors.monitors_dictionary)
         monitored_devices = []
         for id_pair in self.monitors.monitors_dictionary.items():
@@ -519,27 +513,25 @@ class Gui(wx.Frame):
                     )
             else:
                 monitored_devices.append(names.get_name_string(id_pair[0][0]))
-        
-        return monitored_devices
-    
-    def get_device_string(self, device_number):
-        """Returns string device name matching with the number."""
 
-        id_to_name_list = ["AND", "OR", "NAND", "NOR", "XOR", "CLOCK", "SWITCH", "DTYPE"]
+        return monitored_devices
+
+    def get_device_string(self, device_number):
+        """Return string device name matching with the number."""
+        id_to_name_list = ["AND", "OR", "NAND", "NOR",
+                           "XOR", "CLOCK", "SWITCH", "DTYPE"]
         if device_number in range(8):
             return id_to_name_list[device_number]
         else:
             return str(device_number)
 
     def on_dropdown(self, event):
-        """Handle the event when the user selects an option from the dropdown list."""
+        """Handle the event when the user selects an option from the list."""
         selection = self.dropdown.GetStringSelection()
-        
 
     def on_listbox_selection(self, event):
         """Handle the event when a selection is made in the listbox."""
         selection = event.GetString()
-        
 
     def on_list_item_activated(self, event):
         """Handle the event when a list item is activated (double-clicked)."""
@@ -547,8 +539,7 @@ class Gui(wx.Frame):
         current_state = self.list_ctrl.GetItem(index, 1).GetText()
         new_state = 'On' if current_state == 'Off' else 'Off'
         self.list_ctrl.SetItem(index, 1, new_state)
-        
-     
+
         # Update the state of the switch in the devices
         switch_name = self.list_ctrl.GetItem(index, 0).GetText()
         name_id = self.names.query(switch_name)
@@ -557,7 +548,7 @@ class Gui(wx.Frame):
                 self.devices.set_switch(name_id, 1)
             elif new_state == 'Off':
                 self.devices.set_switch(name_id, 0)
-        
+
         # Update the canvas if the circuit has been run
         if not self.running:
             return
