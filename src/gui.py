@@ -251,17 +251,6 @@ class Gui(wx.Frame):
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
 
-        # Assign variable to the other modules
-        self.names = names
-        self.devices = devices
-        self.monitors = monitors
-        self.network = network
-        self.monitored_list = self.get_monitored_devices_list(devices, names)
-        self.running = False
-        self.cycle_count = 10
-        self.devices_list = self.get_devices(devices, names)
-        self.signals_list = self.get_signals_list(names, self.cycle_count)
-
         # Canvas for drawing signals
         self.canvas = MyGLCanvas(self, devices, monitors)
 
@@ -275,6 +264,17 @@ class Gui(wx.Frame):
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
+
+        # Assign variable to the other modules
+        self.names = names
+        self.devices = devices
+        self.monitors = monitors
+        self.network = network
+        self.monitored_list = self.get_monitored_devices_list(devices, names)
+        self.running = False
+        self.cycle_count = 10
+        self.devices_list = self.get_devices(devices, names)
+        self.signals_list = self.get_signals_list(names, self.spin.GetValue())
 
         # Dropdown list options
         added_options = self.monitored_list
@@ -355,7 +355,6 @@ class Gui(wx.Frame):
         """Handle the event when the user changes the spin control value."""
         spin_value = self.spin.GetValue()
         text = "".join(["New spin control value: ", str(spin_value)])
-        self.canvas.render(text)
 
     
     def on_run_button(self, event):
@@ -368,7 +367,7 @@ class Gui(wx.Frame):
 
         # Record signals for monitored devices
         self.signals_list = self.get_signals_list(
-            self.names, self.cycle_count
+            self.names, self.spin.GetValue()
         )
 
         # Render the canvas, set to running
@@ -382,8 +381,62 @@ class Gui(wx.Frame):
             self.on_run_button("")
             return
         self.signals_list = self.get_signals_list(
-            self.names, self.cycle_count
+            self.names, self.spin.GetValue()
         )
+        self.canvas.render(self.signals_list)
+
+    def on_add_button(self, event):
+        """Handle the event when the user clicks the add button."""
+        selection = self.dropdown.GetStringSelection()
+        if selection and selection not in self.added_list.GetItems():
+            index = self.dropdown.FindString(selection)
+
+            # Add the device to monitors
+            device_id = self.names.query(selection.split(".")[0])
+            
+            if len(selection.split(".")) == 2:
+                if selection.split(".")[1] == 'Q':
+                    output_id = 12
+                elif selection.split(".")[1] == 'QBAR':
+                    output_id = 13
+            else:
+                output_id = None
+            if device_id is not None:
+                self.monitors.make_monitor(device_id, output_id, self.cycle_count)
+
+        self.dropdown.Delete(index)
+        self.added_list.Append(selection)
+        
+        if not self.running:
+            return
+        self.signals_list = self.on_run_button("")
+        self.canvas.render(self.signals_list)
+
+    def on_remove_button(self, event):
+        """Handle the event when the user clicks the remove button."""
+        selection = self.added_list.GetSelection()
+        if selection != wx.NOT_FOUND:
+            item = self.added_list.GetString(selection)
+                        
+            # Remove the device from monitors
+            device_id = self.names.query(item.split(".")[0])
+           
+            if len(item.split(".")) == 2:
+                if item.split(".")[1] == 'Q':
+                    output_id = 12
+                elif item.split(".")[1] == 'QBAR':
+                    output_id = 13
+            else:
+                output_id = None
+            if device_id is not None:
+                self.monitors.remove_monitor(device_id, output_id)
+            
+            self.added_list.Delete(selection)
+            self.dropdown.Append(item)
+        
+        if not self.running:
+            return
+        self.signals_list = self.on_run_button("")
         self.canvas.render(self.signals_list)
 
     def get_signals_list(self, names, cycle_count):
@@ -424,7 +477,7 @@ class Gui(wx.Frame):
                 id = device.device_id
 
                 # D.Q
-                if (device.device_id, 14) in self.monitors.monitors_dictionary:
+                if (device.device_id, 12) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".Q")
                     device_list.append(self.get_device_string(device.device_kind))
                     device_list.append(devices.get_property(id))
@@ -432,7 +485,7 @@ class Gui(wx.Frame):
                     device_list = []
 
                 # D.QBAR
-                if (device.device_id, 15) in self.monitors.monitors_dictionary:
+                if (device.device_id, 13) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".QBAR")
                     device_list.append(self.get_device_string(device.device_kind))
                     device_list.append(devices.get_property(id))
@@ -447,12 +500,12 @@ class Gui(wx.Frame):
                 device_list.append(devices.get_property(id))
 
                 all_devices_list.append(device_list)
-
+        
         return all_devices_list
     
     def get_monitored_devices_list(self, devices, names):
         """Returns a list of monitored devices."""
-        print(self.monitors.monitors_dictionary.items())
+        print(self.monitors.monitors_dictionary)
         monitored_devices = []
         for id_pair in self.monitors.monitors_dictionary.items():
             if id_pair[0][1]:
@@ -466,7 +519,7 @@ class Gui(wx.Frame):
                     )
             else:
                 monitored_devices.append(names.get_name_string(id_pair[0][0]))
-        print(monitored_devices)
+        
         return monitored_devices
     
     def get_device_string(self, device_number):
@@ -478,58 +531,14 @@ class Gui(wx.Frame):
         else:
             return str(device_number)
 
-    def on_add_button(self, event):
-        """Handle the event when the user clicks the add button."""
-        selection = self.dropdown.GetStringSelection()
-        if selection and selection not in self.added_list.GetItems():
-            index = self.dropdown.FindString(selection)
-            self.dropdown.Delete(index)
-            self.added_list.Append(selection)
-
-            text = f"Added '{selection}' to the list."
-            
-
-            # Add the device to monitors
-            device_id = self.names.query(selection.split(".")[0])
-            output_id = None
-            if device_id is not None:
-                self.monitors.make_monitor(device_id, output_id, self.cycle_count)
-        
-        if not self.running:
-            return
-        self.signals_list = self.on_run_button("")
-        self.canvas.render(self.signals_list)
-
-    def on_remove_button(self, event):
-        """Handle the event when the user clicks the remove button."""
-        selection = self.added_list.GetSelection()
-        if selection != wx.NOT_FOUND:
-            item = self.added_list.GetString(selection)
-            self.added_list.Delete(selection)
-            self.dropdown.Append(item)
-            text = f"Removed '{item}' from the list."
-            
-            # Remove the device from monitors
-            device_id = self.names.query(item.split(".")[0])
-            output_id = None
-            if device_id is not None:
-                self.monitors.remove_monitor(device_id, output_id)
-        
-        if not self.running:
-            return
-        self.signals_list = self.on_run_button("")
-        self.canvas.render(self.signals_list)
-
     def on_dropdown(self, event):
         """Handle the event when the user selects an option from the dropdown list."""
         selection = self.dropdown.GetStringSelection()
-        text = f"Dropdown selection changed to: {selection}"
         
 
     def on_listbox_selection(self, event):
         """Handle the event when a selection is made in the listbox."""
         selection = event.GetString()
-        text = f"Listbox selection changed to: {selection}"
         
 
     def on_list_item_activated(self, event):
