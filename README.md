@@ -1,9 +1,7 @@
-
 ---
 title: Logic Simulator
 labels: [Circuit Simulation, Python]
 ---
-
 
 **Contributors:** Eduard Burlacu, Nikko ten Have, Dhanish Patel
 
