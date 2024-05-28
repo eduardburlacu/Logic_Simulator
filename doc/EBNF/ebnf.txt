@@ -23,7 +23,7 @@ in_port = device_name , "." , ( "DATA" | "CLK" | "SET" | "CLEAR" | ( "I", digit,
 out_port = device_name , [".",("Q"|"QBAR")] ;
 
 
-monitors = "MONITOR", ":", {monitor_def} ;
+monitors = "MONITORS", ":", {monitor_def} ;
 
 monitor_def = out_port, {out_port} ;
 
