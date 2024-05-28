@@ -557,5 +557,5 @@ class Gui(wx.Frame):
         # Update the canvas if the circuit has been run
         if not self.running:
             return
-        self.signals_list = self.on_run_button("")
-        self.canvas.render(self.signals_list)
+        # self.signals_list = self.on_run_button("")
+        # self.canvas.render(self.signals_list)
