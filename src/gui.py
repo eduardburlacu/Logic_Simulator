@@ -268,12 +268,19 @@ class Gui(wx.Frame):
         self.devices_list = self.get_devices(devices, names)
         self.signals_list = self.get_signals_list(names, self.spin.GetValue())
 
+        non_monitored_devices = []
+        all_devices = self.get_devices(devices, names)
+        for device in all_devices:
+            if device[0] not in self.monitored_list:
+                non_monitored_devices.append(device[0])
+
         # Dropdown list options
-        added_options = self.monitored_list
-        self.dropdown = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY)
+        
+        self.dropdown = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY, choices=non_monitored_devices)
         self.dropdown.Bind(wx.EVT_COMBOBOX, self.on_dropdown)
 
         # List to display added options
+        added_options = self.monitored_list
         self.added_list = wx.ListBox(self, wx.ID_ANY, choices=added_options)
         self.added_list.Bind(wx.EVT_LISTBOX, self.on_listbox_selection)
 
@@ -494,7 +501,6 @@ class Gui(wx.Frame):
                 device_list.append(devices.get_property(id))
 
                 all_devices_list.append(device_list)
-
         return all_devices_list
 
     def get_monitored_devices_list(self, devices, names):
@@ -512,7 +518,7 @@ class Gui(wx.Frame):
                     )
             else:
                 monitored_devices.append(names.get_name_string(id_pair[0][0]))
-
+        
         return monitored_devices
 
     def get_device_string(self, device_index):
