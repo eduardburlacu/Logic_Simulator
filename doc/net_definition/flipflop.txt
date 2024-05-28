@@ -1,0 +1,17 @@
+DEVICES:
+    D = DTYPE;
+    C = CLOCK[4];
+    SW1 = SWITCH[1];
+    SW2 = SWITCH[0];
+    X = XOR ;
+
+CONNECTIONS:
+    SW1 > D.DATA;
+    SW2 > D.SET ;
+    SW2 > D.CLEAR;
+    C > D.CLK;
+    D.Q > X.I1;
+    D.QBAR > X.I2 ;
+
+MONITORS:
+    D.Q, C, X ;
