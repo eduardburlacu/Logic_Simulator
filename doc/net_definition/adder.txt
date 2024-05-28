@@ -1,0 +1,23 @@
+DEVICES:
+    AND1, AND2, AND3 = AND[2];
+    X1, X2 = XOR;
+    OR1 = OR[3];
+    SW1,SW2,SW3 = SWITCH[0];
+
+CONNECTIONS:
+    SW1 > AND1.I1 ;
+    SW2 > AND1.I2 ;
+    SW1 > AND2.I1 ;
+    SW3 > AND2.I2 ;
+    SW2 > AND3.I1 ;
+    SW3 > AND3.I2 ;
+    SW1 > X1.I1;
+    SW2 > X1.I2 ;
+    X1 > X2.I1;
+    SW3 > X2.I2;
+    AND1 > OR1.I1 ;
+    AND2 > OR1.I2 ;
+    AND3 > OR1.I3 ;
+
+MONITORS:
+    OR1, X2, AND1, AND2, AND3 ;
