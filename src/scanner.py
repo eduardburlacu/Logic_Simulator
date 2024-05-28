@@ -47,9 +47,12 @@ class Scanner:
     Parameters
     ----------
     path: path to the circuit definition file.
-    names_map: instance of the names.Names() class aimed to store all incurring tokens
-    devices_map: instance of the names.Names() class that stores valid device types
-    keywords_map: instance of the names.Names() class that stores reserved keywords
+    names_map:
+        instance of the names.Names() class aimed to store all incurring tokens
+    devices_map:
+        instance of the names.Names() class that stores valid device types
+    keywords_map:
+        instance of the names.Names() class that stores reserved keywords
     Public methods
     -------------
     get_symbol(self): Translates the next sequence of characters into a symbol
@@ -129,7 +132,6 @@ class Scanner:
     def decode(self, sym: Symbol):
         """Call get_name_string on the names map."""
         return self.names_map.get_name_string(sym.id)
-
 
     def create_symbol(self, string: str, type_sym: str,
                       line: int, line_pos: int):

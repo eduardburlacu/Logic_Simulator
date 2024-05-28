@@ -10,16 +10,19 @@ class SyntaxErrorsC:
     def __init__(self):
         """Intialise."""
         pass
+
     @staticmethod
     def CharNotSupported(pos):
         """Raise Error."""
         print("Syntax Error: Character Not Supported, in "
               + POSITIONS[pos])
+
     @staticmethod
     def DigitStartsName(pos):
         """Raise Error."""
         print("Syntax Error: Name Cannot Start With A Digit, in "
               + POSITIONS[pos])
+
     @staticmethod
     def MultipleAssignments(pos):
         """Raise Error."""

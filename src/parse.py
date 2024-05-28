@@ -9,7 +9,6 @@ Classes
 Parser - parses the definition file and builds the logic network.
 """
 
-from traceback import print_tb
 from names import Names
 from scanner import Scanner, Symbol
 from devices import Devices
@@ -104,6 +103,7 @@ class ErrorHandler:
             else:
                 raise ValueError("Invalid Error Code for Semantic")
         print("\n")
+
 
 class Parser:
     """Parse the definition file and build the logic network.
@@ -250,13 +250,6 @@ class Parser:
             self.scanner.print_line_error()
             return None
 
-        #elif self.decode() not in {"=",","}:
-        #    # Invalid Punct
-        #    print("hi")
-        #    self.error_handler.log_error("Syn", 8, 0)
-        #    self.scanner.print_line_error()
-        #    return False
-
         while self.decode() == ",":
             if not self.next_symbol():
                 # Unexpected EOF
@@ -279,24 +272,17 @@ class Parser:
                 return False
 
             self.devices_defined[dev_name] = self.counter
-            ct+=1
+            ct += 1
             if not self.next_symbol():
                 # Unexpected EOF
                 self.error_handler.log_error("Syn", 5, 0)
                 self.scanner.print_line_error()
                 return None
 
-            #elif self.symbol.type != self.scanner.PUNCT:
-            #    self.error_handler.log_error("Syn", 8, 0)
-            #    self.scanner.print_line_error()
-            #    return False
-
-        
         if not self.detect("=", self.scanner.PUNCT):
             self.counter -= 1
             for e in range(ct):
                 self.devices_defined.popitem()
-            print(self.devices_defined)
             self.error_handler.log_error("Syn", 8, 0)
             self.scanner.print_line_error()
             return False
@@ -576,8 +562,6 @@ class Parser:
                 | ( "I", digit, {digit} )  ) ;
         out_port = device_name , [".", ("Q"|"QBAR")] ;
         """
-        # print(F"________CURRENT SYMBOL
-        #      IS {self.decode()} {self.symbol.type} _____")
         if self.symbol.type == self.scanner.EOF:
             return True
 
@@ -600,7 +584,6 @@ class Parser:
 
         out_pin_arg = None
         # Check the case when the output port needs arguments
-        print(self.devices_defined[out_pin])
         if self.device_types[
                 self.devices_defined[out_pin]
                 ][0] == "DTYPE":
@@ -668,7 +651,7 @@ class Parser:
                 self.error_handler.log_error("Sem", 9, 1)
                 self.scanner.print_line_error()
                 return False
-        
+
         elif self.device_types[self.devices_defined[in_pin]][0] == "XOR":
             if in_pin_arg not in {"I1", "I2"}:
                 self.error_handler.log_error("Sem", 9, 1)
@@ -682,8 +665,6 @@ class Parser:
                 return False
             try:
                 x = int(in_pin_arg[1:])  # TODO !!!!!
-                print(x)
-                print(self.device_types[self.devices_defined[in_pin]])
                 if x > self.device_types[self.devices_defined[in_pin]][1]:
                     self.error_handler.log_error("Sem", 10, 1)
                     self.scanner.print_line_error()
@@ -753,8 +734,7 @@ class Parser:
 
         while not self.detect("MONITORS", self.scanner.KEYWORD):
             con = self._connection_def()
-            print("hahahahahha")
-            print(con)
+
             if con is None:
                 # unexpected eof
                 # print("if con")  # DEBUG
@@ -773,7 +753,7 @@ class Parser:
                 elif not next_line_def:  # unexpected keyword encountered
                     self.error_handler.log_error("Syn", 7, 1)
                     self.scanner.print_line_error()
-                    #return False
+                    # return False
 
             if not self.next_symbol():
                 # Here it should be True and not None because the
@@ -815,8 +795,7 @@ class Parser:
             return None
 
         monitor = self.decode()
-        print(self.devices_defined)
-        #print(monitor)
+        # print(monitor)
         if monitor not in self.devices_defined:
             self.error_handler.log_error("Sem", 8, 2)
             self.scanner.print_line_error()
@@ -892,7 +871,7 @@ class Parser:
                     return None
                 param = self.decode()
                 devType = self.device_types[self.devices_defined[monitor]][0]
-                #print(devType)
+
                 if devType != "DTYPE" or param not in {"Q", "QBAR"}:
                     self.error_handler.log_error("Sem", 11, 2)
                     self.scanner.print_line_error()
@@ -1006,7 +985,6 @@ class Parser:
                 errorCount += 1
                 continue
 
-
     def parse_network(self) -> bool:
         """Parse the circuit definition file."""
         parsed_devices = self.parse_devices()
@@ -1017,7 +995,7 @@ class Parser:
                 return False
 
         parsed_connections = self.parse_connections()
-        print(f"PARSED IS{parsed_connections}") #DEBUG
+        # print(f"PARSED IS{parsed_connections}") #DEBUG
 
         if parsed_connections is None:
             return False

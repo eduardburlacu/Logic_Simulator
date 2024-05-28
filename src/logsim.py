@@ -48,18 +48,19 @@ def main(arg_list):
     network = Network(names, devices)
     monitors = Monitors(names, devices, network)
 
-
     for option, path in options:
         if option == "-h":  # print the usage message
             print(usage_message)
             sys.exit()
         elif option == "-c":  # use the command line user interface
             scanner = Scanner(
-                path = path,
+                path=path,
                 names_map=names,
-                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR", "XOR", "DTYPE"]),
+                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
+                                   "OR", "NOR", "XOR", "DTYPE"]),
                 keywords_map=Names(
-                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
+                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA",
+                     "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
                 punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
             )
 
@@ -78,11 +79,13 @@ def main(arg_list):
 
         [path] = arguments
         scanner = Scanner(
-                path = path,
+                path=path,
                 names_map=names,
-                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR", "XOR", "DTYPE"]),
+                devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
+                                   "OR", "NOR", "XOR", "DTYPE"]),
                 keywords_map=Names(
-                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
+                    ["DEVICES", "CONNECTIONS", "MONITORS", "DATA",
+                     "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
                 punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
                 )
         parser = Parser(names, devices, network, monitors, scanner)
