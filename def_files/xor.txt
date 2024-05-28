@@ -3,10 +3,8 @@ DEVICES:
     X1 = XOR ;
     C1 = CLOCK[2];
     C2 = CLOCK[3];
-
 CONNECTIONS:
     C2 > X1.I1 ;
     C1 > X1.I2  ;
-
 MONITORS:
     C1, C2, X1  ;
