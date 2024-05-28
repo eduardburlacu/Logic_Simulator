@@ -383,25 +383,25 @@ class Gui(wx.Frame):
     def on_add_button(self, event):
         """Handle the event when the user clicks the add button."""
         selection = self.dropdown.GetStringSelection()
+
         if selection and selection not in self.added_list.GetItems():
             index = self.dropdown.FindString(selection)
 
             # Add the device to monitors
             device_id = self.names.query(selection.split(".")[0])
-
+            output_id = None
             if len(selection.split(".")) == 2:
                 if selection.split(".")[1] == 'Q':
                     output_id = 12
                 elif selection.split(".")[1] == 'QBAR':
                     output_id = 13
-            else:
-                output_id = None
             if device_id is not None:
                 self.monitors.make_monitor(device_id, output_id, self.spin.GetValue())
 
-        self.dropdown.Delete(index)
-        self.added_list.Append(selection)
-
+            self.dropdown.Delete(index)
+            self.added_list.Append(selection)
+        if not selection:
+            print("Nothing to add...")
         if not self.running:
             return
         self.signals_list = self.on_run_button("")
@@ -415,21 +415,19 @@ class Gui(wx.Frame):
 
             # Remove the device from monitors
             device_id = self.names.query(item.split(".")[0])
-
+            output_id = None
             if len(item.split(".")) == 2:
                 if item.split(".")[1] == 'Q':
                     output_id = 12
                 elif item.split(".")[1] == 'QBAR':
                     output_id = 13
-            else:
-                output_id = None
+
             if device_id is not None:
                 self.monitors.remove_monitor(device_id,
                                              output_id)
 
             self.added_list.Delete(selection)
             self.dropdown.Append(item)
-
         if not self.running:
             return
         self.signals_list = self.on_run_button("")
