@@ -47,7 +47,9 @@ class Scanner:
     Parameters
     ----------
     path: path to the circuit definition file.
-    names: instance of the names.Names() class.
+    names_map: instance of the names.Names() class aimed to store all incurring tokens
+    devices_map: instance of the names.Names() class that stores valid device types
+    keywords_map: instance of the names.Names() class that stores reserved keywords
     Public methods
     -------------
     get_symbol(self): Translates the next sequence of characters into a symbol
@@ -106,7 +108,7 @@ class Scanner:
             self.get_next_character()
 
     def get_number(self) -> str:
-        """Return full number as an str."""
+        """Return full number as a str."""
         number = ""
         while self.current_character.isdigit():
             number = number + self.current_character
@@ -128,38 +130,11 @@ class Scanner:
         """Call get_name_string on the names map."""
         return self.names_map.get_name_string(sym.id)
 
-        # if sym.type == self.KEYWORD:
-        #    return self.keywords_map.get_name_string(sym.id)
-        # elif sym.type == self.EOF:
-        #    return ""
-        # elif sym.type == self.PUNCT:
-        #    return self.punct_map.get_name_string(sym.id)
-        # elif sym.type == self.NAME:
-        #    return self.names_map.get_name_string(sym.id)
-        # elif sym.type == self.NUMBER:
-        #    return sym.id
-        # elif sym.type == self.DEVICE:
-        #    return self.devices_map.get_name_string(sym.id)
 
     def create_symbol(self, string: str, type_sym: str,
                       line: int, line_pos: int):
         """Create a Symbol from the string."""
         [symbol_id] = self.names_map.lookup([string])
-
-        # if type_sym==self.EOF:
-        #    symbol_id = 0
-        # elif type_sym==self.PUNCT:
-        #    symbol_id = self.punct_map.query(string)
-        # elif type_sym==self.NAME:
-        #    [symbol_id] = self.names_map.lookup([string])
-        # elif type_sym==self.DEVICE:
-        #    symbol_id = self.devices_map.query(string)
-        # elif type_sym==self.KEYWORD:
-        #    symbol_id = self.keywords_map.query(string)
-        # elif type_sym==self.NUMBER:
-        #    symbol_id = int(string)
-        # else:
-        #    raise AttributeError("Unsupported symbol type")
 
         return Symbol(
             type_sym=type_sym,
