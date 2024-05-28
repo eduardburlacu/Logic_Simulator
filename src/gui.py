@@ -187,6 +187,13 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             self.pan_x -= (self.zoom - old_zoom) * ox
             self.pan_y -= (self.zoom - old_zoom) * oy
             self.init = False
+        if event.Dragging():
+            self.pan_x += event.GetX() - self.last_mouse_x
+            self.pan_y -= event.GetY() - self.last_mouse_y
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+            self.init = False
+
         self.render(self.signals_list)
         self.Refresh()  # triggers the paint event
 
