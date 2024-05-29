@@ -112,7 +112,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         for i in range(len(signal)):
             x = (i * 50) + 30
             x_next = (i * 50) + 80
-            y = 430 + 50 * int(signal[i]) - 100 * position
+            y = 630 + 50 * int(signal[i]) - 100 * position
             GL.glVertex2f(x, y)
             GL.glVertex2f(x_next, y)
         GL.glEnd()
@@ -121,7 +121,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Render all the signals and labels."""
         for i in range(len(self.signals_list)):
             self.draw_signal(self.signals_list[i][1], self.colours[i % 3], i)
-            self.render_text(self.signals_list[i][0], 10, 450 - 100 * i)
+            self.render_text(self.signals_list[i][0], 10, 650 - 100 * i)
 
     def render(self, signals_list):
         """Handle all drawing operations."""
@@ -239,7 +239,7 @@ class Gui(wx.Frame):
 
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
-        super().__init__(parent=None, title=title, size=(800, 800))
+        super().__init__(parent=None, title=title, size=(1200, 900))
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -259,7 +259,7 @@ class Gui(wx.Frame):
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
-                                    + "Available" + 30*" " + "Current")
+                                    + "Available" + 20*" " + "Current")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
@@ -565,5 +565,3 @@ class Gui(wx.Frame):
         # Update the canvas if the circuit has been run
         if not self.running:
             return
-        # self.signals_list = self.on_run_button("")
-        # self.canvas.render(self.signals_list)
