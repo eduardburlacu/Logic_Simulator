@@ -5,3 +5,5 @@ DEVICES:
 CONNECTIONS:
     C1 > N.I1;
     C2 > N.I2;
+MONITORS:
+    N;

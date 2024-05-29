@@ -119,8 +119,33 @@ def test_parse_all():
         parse = parser.parse_network()
         # assert parse == truth
         outcomes.append(parse)
-        print(outcomes)
+    print(outcomes)
     assert outcomes == [False, False, True, False, False,
                         False, False, False, False, True,
                         True, False, False, False, False,
                         False, True, False, True]
+
+
+def test_skip_line(parser):
+    assert parser.decode() == "DEVICES"
+    for _ in range(4):
+        parser.next_symbol()
+    assert parser.decode() == "NOR"
+    parser.next_line()
+    assert parser.decode() == ";"
+    for _ in range(3):
+        parser.next_symbol()
+    parser.next_line()
+    assert parser.decode() == ";"
+
+
+def test_skip_block(parser):
+    assert parser.decode() == "DEVICES"
+    parser.next_block()
+    assert parser.decode() == "CONNECTIONS"
+    for _ in range(2):
+        parser.next_symbol()
+    parser.next_line()
+    assert parser.decode() == ";"
+    parser.next_block()
+    assert  parser.decode() == "MONITORS"
