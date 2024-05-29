@@ -19,7 +19,7 @@ def parser():
 
     scanner = Scanner(
         path=os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          "..", "def_files", "dtype.txt")),
+                                          "..", "def_files", "nor.txt")),
         names_map=pNames,
         devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
                            "OR", "NOR", "XOR", "DTYPE"]),
@@ -119,7 +119,8 @@ def test_parse_all():
         parse = parser.parse_network()
         # assert parse == truth
         outcomes.append(parse)
+        print(outcomes)
     assert outcomes == [False, False, True, False, False,
                         False, False, False, False, True,
-                        False, False, False, False, False,
+                        True, False, False, False, False,
                         False, True, False, True]

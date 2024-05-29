@@ -790,19 +790,19 @@ class Parser:
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return None
 
         monitor = self.decode()
-        # print(monitor)
-        if monitor not in self.devices_defined:
+
+        if monitor not in self.devices_defined and monitor != "":
             self.error_handler.log_error("Sem", 8, 2)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return None
 

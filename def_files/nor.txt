@@ -1,9 +1,7 @@
 DEVICES:
-    N, M   NOR [2];
-    C1,C3,C4  CLOCK[5];
+    N = NOR [2];
+    C1 = CLOCK[5];
     C2 = CLOCK[3]; #will get ignored
 CONNECTIONS:
     C1 > N.I1;
     C2 > N.I2;
-MONITORS:
-    M ;
