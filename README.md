@@ -46,3 +46,8 @@ bash python src/logsim.py doc/net_definition/circuit1.txt
 # Run toy example 2
 bash python src/logsim.py doc/net_definition/circuit2.txt
 ```
+
+```bash
+# Run a bit adder with carry
+bash python src/logsim.py doc/net_definition/adder.txt
+```
