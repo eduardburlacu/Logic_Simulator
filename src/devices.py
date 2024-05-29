@@ -92,6 +92,8 @@ class Devices:
 
     make_device(self, device_id, device_kind, device_property=None): Creates
                        the specified device and returns errors if unsuccessful.
+
+    get_property(self, device_id): Returns the property of the specified device.
     """
 
     def __init__(self, names):
