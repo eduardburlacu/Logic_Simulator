@@ -121,10 +121,9 @@ def test_parse_all():
         outcomes.append(parse)
     print(outcomes)
     assert outcomes == [False, False, True, False, False,
+                        False, False, True, True, False,
                         False, False, False, False, True,
-                        True, False, False, False, False,
-                        False, True, False, True]
-
+                        True, False, False, False]
 
 def test_skip_line(parser):
     assert parser.decode() == "DEVICES"
