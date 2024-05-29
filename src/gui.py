@@ -106,7 +106,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
     def draw_signal(self, signal, colour, position):
         """Draw the given signal."""
-
         GL.glColor3f(colour[0], colour[1], colour[2])
         GL.glBegin(GL.GL_LINE_STRIP)
 
@@ -282,8 +281,9 @@ class Gui(wx.Frame):
                 non_monitored_devices.append(device[0])
 
         # Dropdown list options
-        
-        self.dropdown = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY, choices=non_monitored_devices)
+
+        self.dropdown = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY,
+                                    choices=non_monitored_devices)
         self.dropdown.Bind(wx.EVT_COMBOBOX, self.on_dropdown)
 
         # List to display added options
@@ -410,7 +410,8 @@ class Gui(wx.Frame):
                 elif selection.split(".")[1] == 'QBAR':
                     output_id = 13
             if device_id is not None:
-                self.monitors.make_monitor(device_id, output_id, self.spin.GetValue())
+                self.monitors.make_monitor(device_id, output_id,
+                                           self.spin.GetValue())
 
             self.dropdown.Delete(index)
             self.added_list.Append(selection)
@@ -525,13 +526,13 @@ class Gui(wx.Frame):
                     )
             else:
                 monitored_devices.append(names.get_name_string(id_pair[0][0]))
-        
+
         return monitored_devices
 
     def get_device_string(self, device_index):
         """Return string device name matching with the number."""
         name = ["AND", "OR", "NAND", "NOR",
-                           "XOR", "CLOCK", "SWITCH", "DTYPE"]
+                "XOR", "CLOCK", "SWITCH", "DTYPE"]
         if device_index in range(8):
             return name[device_index]
         else:
