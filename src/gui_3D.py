@@ -74,7 +74,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.med_diffuse = [0.75, 0.75, 0.75, 1.0]
         self.full_specular = [0.5, 0.5, 0.5, 1.0]
         self.no_specular = [0.0, 0.0, 0.0, 1.0]
-
+        self.signals_list = []
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
@@ -144,7 +144,16 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glMultMatrixf(self.scene_rotate)
         GL.glScalef(self.zoom, self.zoom, self.zoom)
 
-    def render(self):
+    def get_signals(self):
+        """Render all the signals and labels."""
+        for sig in self.signals_list:
+            for i in range(len(sig[1])):
+                self.draw_cuboid(0, 0, 5 , 5, sig[1][i])
+            self.render_text(sig[0], 10, 650 - 100 * i, 1)
+
+    # TODO ADD AXES
+
+    def render(self, signals_list):
         """Handle all drawing operations."""
         self.SetCurrent(self.context)
         if not self.init:
@@ -155,19 +164,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
 
-        # Draw a sample signal trace, make sure its centre of gravity
-        # is at the scene origin
-        GL.glColor3f(1.0, 0.7, 0.5)  # signal trace is beige
-        for i in range(-10, 10):
-            z = i * 20
-            if i % 2 == 0:
-                self.draw_cuboid(0, z, 5, 10, 1)
-            else:
-                self.draw_cuboid(0, z, 5, 10, 11)
-
-        GL.glColor3f(1.0, 1.0, 1.0)  # text is white
-        self.render_text("D1.QBAR", 0, 0, 210)
-
+        if signals_list is not None:
+            self.signals_list = signals_list
+        self.get_signals()
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
@@ -223,7 +222,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         size = self.GetClientSize()
         text = "".join(["Canvas redrawn on paint event, size is ",
                         str(size.width), ", ", str(size.height)])
-        self.render()
+        self.render(self.signals_list)
 
     def on_size(self, event):
         """Handle the canvas resize event."""

@@ -70,7 +70,7 @@ class SemanticErrorsC:
     @staticmethod
     def InputNotAssigned(pos):
         """Raise Error."""
-        print("Semantic Error: Input to Device Unassigned, in "
+        print("Semantic Error: Input to Device Left Unassigned, in "
               + POSITIONS[pos])
 
     @staticmethod
