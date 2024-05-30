@@ -474,7 +474,7 @@ class Parser:
             #  Invalid Symbol?
             self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
-            return False
+            exit("Cannot Build Circuit: Section \"DEVICES\" Not Present.")
 
         if not self.next_symbol():
             #  unexpected EOF
@@ -626,7 +626,7 @@ class Parser:
         in_pin = self.decode()
 
         if in_pin not in self.devices_defined:
-            self.error_handler.log_error("Sem", 9, 1)
+            self.error_handler.log_error("Sem", 8, 1)
             self.scanner.print_line_error()
             return False
 
@@ -666,7 +666,7 @@ class Parser:
             try:
                 x = int(in_pin_arg[1:])  # TODO !!!!!
                 if x > self.device_types[self.devices_defined[in_pin]][1]:
-                    self.error_handler.log_error("Sem", 10, 1)
+                    self.error_handler.log_error("Sem", 9, 1)
                     self.scanner.print_line_error()
                     return False
             except ValueError as e:  # invalid input
@@ -992,7 +992,7 @@ class Parser:
             return False
         elif not parsed_devices:
             if not self.next_block():
-				return False
+                return False
 
         parsed_connections = self.parse_connections()
         # print(f"PARSED IS{parsed_connections}") #DEBUG
