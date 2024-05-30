@@ -470,7 +470,7 @@ class Parser:
             return None
 
         #  Handle the case when the start word is not DEVICES
-        elif not self.detect("DEVICES", self.scanner.KEYWORD):
+        elif self.detect("DEVICES", self.scanner.KEYWORD) == False:
             #  Invalid Symbol?
             self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
@@ -790,19 +790,19 @@ class Parser:
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return None
 
         monitor = self.decode()
-        # print(monitor)
-        if monitor not in self.devices_defined:
+
+        if monitor not in self.devices_defined and monitor != "":
             self.error_handler.log_error("Sem", 8, 2)
             self.scanner.print_line_error()
             return False
 
         if not self.next_symbol():
-            self.error_handler.log_error("Syn", 5, 0)
+            self.error_handler.log_error("Syn", 5, 2)
             self.scanner.print_line_error()
             return None
 
@@ -992,7 +992,7 @@ class Parser:
             return False
         elif not parsed_devices:
             if not self.next_block():
-                return False
+				return False
 
         parsed_connections = self.parse_connections()
         # print(f"PARSED IS{parsed_connections}") #DEBUG
