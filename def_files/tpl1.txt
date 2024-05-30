@@ -1,4 +1,4 @@
-
+DEVICES:
     A = OR[2] ;
     B = NOR[3] ;
     C = AND[3] ;
@@ -6,6 +6,7 @@
     clock = CLOCK[05] ;
     input1, input2, set_swi, reset_swi = SWITCH[0] ;
     input3 = SWITCH[1] ;
+    
 CONNECTIONS:
 	input1 > A.I1 ;
 	input1 > B.I1 ;
@@ -19,5 +20,5 @@ CONNECTIONS:
 	clock > flipflop.CLK ;
 	set_swi > flipflop.SET ;
 	reset_swi > flipflop.CLEAR ;
-MONITORS:
-	A, flipflop.Q, flipflop.QBAR ;
+#MONITORS:
+#	A, flipflop.Q, flipflop.QBAR ;

@@ -1,4 +1,4 @@
-
+DEVICES:
     A = OR[2] ;
     B = NOR[3] ;
     C = AND[3] ;

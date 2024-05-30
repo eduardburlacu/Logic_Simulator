@@ -470,7 +470,7 @@ class Parser:
             return None
 
         #  Handle the case when the start word is not DEVICES
-        elif not self.detect("DEVICES", self.scanner.KEYWORD):
+        elif self.detect("DEVICES", self.scanner.KEYWORD) == False:
             #  Invalid Symbol?
             self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
@@ -992,7 +992,7 @@ class Parser:
             return False
         elif not parsed_devices:
             if not self.next_block():
-                return False
+				return False
 
         parsed_connections = self.parse_connections()
         # print(f"PARSED IS{parsed_connections}") #DEBUG
