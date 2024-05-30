@@ -116,12 +116,31 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glVertex2f(x, y)
             GL.glVertex2f(x_next, y)
         GL.glEnd()
+        self.draw_axes(signal, position)
 
     def get_signals(self):
         """Render all the signals and labels."""
         for i in range(len(self.signals_list)):
             self.draw_signal(self.signals_list[i][1], self.colours[i % 3], i)
             self.render_text(self.signals_list[i][0], 10, 650 - 100 * i)
+        
+    def draw_axes(self, signal, position):
+        """Draw axes for signals."""
+
+        GL.glColor3f(0, 0, 0)
+
+        for i in range(len(signal) + 1):
+            GL.glBegin(GL.GL_LINE_STRIP)
+            x = (i * 50) + 30
+            if i % 5 == 0:
+                y = 630 - 5 - 90 * position
+                y_next = 630 - 30 - 90 * position
+            else:
+                y = 630 - 5 - 90 * position
+                y_next = 630 - 15 - 90 * position
+            GL.glVertex2f(x, y)
+            GL.glVertex2f(x, y_next)
+            GL.glEnd()
 
     def render(self, signals_list):
         """Handle all drawing operations."""
