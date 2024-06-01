@@ -111,9 +111,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glBegin(GL.GL_LINE_STRIP)
 
         for i in range(len(signal)):
-            x = (i * 50) + 30
-            x_next = (i * 50) + 80
-            y = 630 + 50 * int(signal[i]) - 100 * position
+            x = (i * 50) + 100
+            x_next = (i * 50) + 150
+            y = 630 + 50 * int(signal[i]) - 120 * position
             GL.glVertex2f(x, y)
             GL.glVertex2f(x_next, y)
         GL.glEnd()
@@ -123,7 +123,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         """Render all the signals and labels."""
         for i in range(len(self.signals_list)):
             self.draw_signal(self.signals_list[i][1], self.colours[i % 3], i)
-            self.render_text(self.signals_list[i][0], 10, 650 - 100 * i)
+            self.render_text(self.signals_list[i][0], 10, 650 - 120 * i)
+            self.render_text("0", 80, 625 - 120 * i )
+            self.render_text("1", 80, 675 - 120 * i)
         
     def draw_axes(self, signal, position):
         """Draw axes for signals."""
@@ -132,16 +134,24 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         for i in range(len(signal) + 1):
             GL.glBegin(GL.GL_LINE_STRIP)
-            x = (i * 50) + 30
-            if i % 5 == 0:
-                y = 630 - 5 - 90 * position
-                y_next = 630 - 30 - 90 * position
-            else:
-                y = 630 - 5 - 90 * position
-                y_next = 630 - 15 - 90 * position
+            x = (i * 50) + 100
+            y = 630 - 5 - 120 * position
+            y_next = 630 - 15 - 120 * position
             GL.glVertex2f(x, y)
             GL.glVertex2f(x, y_next)
             GL.glEnd()
+            self.render_text(str(i), x - 5, y_next - 20)
+        
+        GL.glBegin(GL.GL_LINES)
+        GL.glVertex2f(100, 630 - 10 - 120 * position)  # Start point of the x-axis
+        GL.glVertex2f(100 + len(signal) * 50, 630 - 10 - 120 * position)  # End point of the x-axis
+        GL.glEnd()
+
+        # Draw vertical y-axis line for each graph
+        GL.glBegin(GL.GL_LINES)
+        GL.glVertex2f(100, 625 - 120 * position)  # Bottom point of the y-axis
+        GL.glVertex2f(100, 695 - 120 * position)  # Top point of the y-axis
+        GL.glEnd()
 
     def render(self, signals_list):
         """Handle all drawing operations."""
@@ -257,9 +267,33 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, path, names, devices, network, monitors):
+    def __init__(self, title, path, names, devices, network, monitors, language):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(1200, 900))
+
+        # Define languages dictionary to map wx languages to directory names
+        self.lang_map = {
+            "es": (wx.LANGUAGE_SPANISH, "languages/spanish"),
+            "chi": (wx.LANGUAGE_CHINESE, "languages/chinese"),
+            
+        }
+        # Check if the user has selected a valid language, and if so, set it
+        userlang = self.lang_map.get(language)
+        if userlang:
+            
+            if userlang[1] == "languages/spanish":
+                self.locale = wx.Locale(wx.LANGUAGE_SPANISH)
+                self.locale.AddCatalogLookupPathPrefix("languages/spanish")
+                print(self.locale.AddCatalog("messages"))
+            elif userlang[1] == "languages/chinese":
+                self.locale = wx.Locale(wx.LANGUAGE_CHINESE)
+                self.locale.AddCatalogLookupPathPrefix("languages/chinese")
+                print(self.locale.AddCatalog("messages"))
+            
+
+        # Default to English if the user has not selected a valid language
+        else:
+            self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -282,6 +316,7 @@ class Gui(wx.Frame):
                                     + "Available" + 20*" " + "Current")
         self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
         self.add_button = wx.Button(self, wx.ID_ANY, "Add")
+        self.dimension_button = wx.Button(self, wx.ID_ANY, "Change Dimension")
         self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
 
         # Assign variable to the other modules
@@ -294,14 +329,12 @@ class Gui(wx.Frame):
         self.devices_list = self.get_devices(devices, names)
         self.signals_list = self.get_signals_list(names, self.spin.GetValue())
 
+        # Dropdown list options
         non_monitored_devices = []
         all_devices = self.get_devices(devices, names)
         for device in all_devices:
             if device[0] not in self.monitored_list:
                 non_monitored_devices.append(device[0])
-
-        # Dropdown list options
-
         self.dropdown = wx.ComboBox(self, wx.ID_ANY, style=wx.CB_READONLY,
                                     choices=non_monitored_devices)
         self.dropdown.Bind(wx.EVT_COMBOBOX, self.on_dropdown)
@@ -338,6 +371,7 @@ class Gui(wx.Frame):
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                             self.on_list_item_activated)
+        self.dimension_button.Bind(wx.EVT_BUTTON, self.on_dimension_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -359,6 +393,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(self.dimension_button, 1, wx.EXPAND | wx.ALL, 10)
 
         # Monitors with Dropdown List and Added List
         side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
@@ -374,6 +409,8 @@ class Gui(wx.Frame):
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
+
+        self.dimension = False
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
@@ -585,3 +622,23 @@ class Gui(wx.Frame):
         # Update the canvas if the circuit has been run
         if not self.running:
             return
+    
+    def on_dimension_button(self, event):
+        """Handle the event when the user clicks the run button."""
+
+
+        self.dimension = True if False else False
+
+        # # Reset monitors
+        # self.monitors.reset_monitors()
+        # # Restart devices
+        # self.devices.cold_startup()
+
+        # # Record signals for monitored devices
+        # self.signals_list = self.get_signals_list(
+        #     self.names, self.spin.GetValue()
+        # )
+
+        # # Render the canvas, set to running
+        # self.canvas.render(self.signals_list)
+        # self.running = True

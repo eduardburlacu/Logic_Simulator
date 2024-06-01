@@ -20,7 +20,7 @@ from network import Network
 from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
-# from gui import MyGLCanvas as Canvas2d
+
 
 class MyGLCanvas(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -155,12 +155,12 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         for s in range(len(self.signals_list)):
             for i in range(len(self.signals_list[s][1])):
                 GL.glColor3f(self.colours[s%3][0], self.colours[s%3][1], self.colours[s%3][2])
-                self.draw_cuboid(s*15, i*10, 4.5 , 4.5, self.signals_list[s][1][i] * 10 + 1)
+                self.draw_cuboid(s*15, i*10, 3 , 4.5, self.signals_list[s][1][i] * 10 + 1)
                 if s == 0:
                     GL.glColor3f(1.0, 1.0, 1.0)
                     self.render_text(str(i+1), 15 * s,  12,  i*10)
             GL.glColor3f(1.0, 1.0, 1.0)
-            self.render_text(self.signals_list[s][0], 15 * s,  12 , -5)
+            self.render_text(self.signals_list[s][0], 15 * s,  12 , -10)
 
     def render(self, signals_list):
         """Handle all drawing operations."""
@@ -176,6 +176,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         if signals_list is not None:
             self.signals_list = signals_list
         self.get_signals()
+
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
         GL.glFlush()
@@ -319,7 +320,7 @@ class Gui(wx.Frame):
     def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(1200, 900))
-        # self.Dim3d = False
+
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
@@ -327,18 +328,15 @@ class Gui(wx.Frame):
         fileMenu.Append(wx.ID_EXIT, "&Exit")
         menuBar.Append(fileMenu, "&File")
         self.SetMenuBar(menuBar)
-        self.canvas = MyGLCanvas(self, devices, monitors)
 
         # Canvas for drawing signals
-        # canvasses = [Canvas2d(self, devices, monitors),
-        #                MyGLCanvas(self, devices, monitors)]
-        # self.canvas = canvasses[self.Dim3d]
+        self.canvas = MyGLCanvas(self, devices, monitors)
+
         # Configure the widgets
         self.textC = wx.StaticText(self, wx.ID_ANY, "Simulation Cycles")
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
-        # self.dim_button = wx.Button(self, wx.ID_ANY, "Change Dimension")
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
                                     + "Available" + 20*" " + "Current")
@@ -400,7 +398,6 @@ class Gui(wx.Frame):
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                             self.on_list_item_activated)
-        # self.dim_button.Bind(wx.EVT_BUTTON, self.on_dim_button)
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -422,7 +419,6 @@ class Gui(wx.Frame):
         side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
-        # side_sizer.Add(self.dim_button, 1, wx.EXPAND | wx.ALL, 10)
 
         # Monitors with Dropdown List and Added List
         side_sizer.Add(self.textM, 1, wx.EXPAND | wx.ALL, 10)
@@ -466,6 +462,7 @@ class Gui(wx.Frame):
 
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
+        self.running = True
 
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
@@ -476,10 +473,6 @@ class Gui(wx.Frame):
             self.names, self.spin.GetValue()
         )
         self.canvas.render(self.signals_list)
-
-
-    # def on_dim_button(self, event):
-    #     self.Dim3d = True if self.Dim3d == False else False        
 
     def on_add_button(self, event):
         """Handle the event when the user clicks the add button."""
@@ -534,7 +527,6 @@ class Gui(wx.Frame):
             return
         self.signals_list = self.on_run_button("")
         self.canvas.render(self.signals_list)
-
 
     def get_signals_list(self, names, cycle_count):
         """Return a list of lists of the signals of the monitors."""
