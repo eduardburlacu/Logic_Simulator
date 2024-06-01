@@ -316,7 +316,7 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
         self.zoom = 1
 
         # Offset between viewpoint and origin of the scene
-        self.depth_offset = 1000
+        self.depth_offset = 300
 
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
@@ -487,6 +487,18 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
             self.init = False
+        # if event.Dragging():
+        #     x = event.GetX() - self.last_mouse_x
+        #     y = event.GetY() - self.last_mouse_y
+
+        #     if event.LeftIsDown():  # Translate left/right and up/down
+        #         self.pan_x += x
+        #         self.pan_y -= y
+
+        #     self.last_mouse_x = event.GetX()
+        #     self.last_mouse_y = event.GetY()
+
+        #     self.init = False
 
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
@@ -582,6 +594,7 @@ class Gui(wx.Frame):
         self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
         self.run_button = wx.Button(self, wx.ID_ANY, "Run")
         self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
+        self.textD = wx.StaticText(self, wx.ID_ANY, "Dimension")
         self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
         self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
                                     + "Available" + 20*" " + "Current")
@@ -666,6 +679,7 @@ class Gui(wx.Frame):
         side_sizer.Add(self.textC, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.spin, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(button_sizer1, 1, wx.EXPAND | wx.ALL, 10)
+        side_sizer.Add(self.textD, 1, wx.EXPAND | wx.ALL, 10)
         side_sizer.Add(self.dimension_button, 1, wx.EXPAND | wx.ALL, 10)
 
         # Monitors with Dropdown List and Added List
@@ -682,8 +696,6 @@ class Gui(wx.Frame):
 
         self.SetSizeHints(600, 600)
         self.SetSizer(main_sizer)
-
-        self.dimension = False
 
     def on_menu(self, event):
         """Handle the event when the user selects a menu item."""
