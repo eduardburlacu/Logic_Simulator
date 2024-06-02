@@ -717,12 +717,11 @@ class Gui(wx.Frame):
         self.monitors.reset_monitors()
         # Restart devices
         self.devices.cold_startup()
-
         # Record signals for monitored devices
         self.signals_list = self.get_signals_list(
             self.names, self.spin.GetValue()
         )
-
+        
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
         self.running = True
@@ -749,9 +748,9 @@ class Gui(wx.Frame):
             output_id = None
             if len(selection.split(".")) == 2:
                 if selection.split(".")[1] == 'Q':
-                    output_id = 12
-                elif selection.split(".")[1] == 'QBAR':
                     output_id = 13
+                elif selection.split(".")[1] == 'QBAR':
+                    output_id = 14
             if device_id is not None:
                 self.monitors.make_monitor(device_id, output_id,
                                            self.spin.GetValue())
@@ -776,9 +775,9 @@ class Gui(wx.Frame):
             output_id = None
             if len(item.split(".")) == 2:
                 if item.split(".")[1] == 'Q':
-                    output_id = 12
-                elif item.split(".")[1] == 'QBAR':
                     output_id = 13
+                elif item.split(".")[1] == 'QBAR':
+                    output_id = 14
 
             if device_id is not None:
                 self.monitors.remove_monitor(device_id,
@@ -798,15 +797,16 @@ class Gui(wx.Frame):
         for id_pair in self.monitors.monitors_dictionary.items():
             signal = []
 
-            if id_pair[0][1] == 12:
+            if id_pair[0][1] == 13:
                 signal.append(names.get_name_string(id_pair[0][0]) + ".Q")
-            elif id_pair[0][1] == 13:
+            elif id_pair[0][1] == 14:
                 signal.append(
                     names.get_name_string(id_pair[0][0]) + ".QBAR"
                 )
             else:
                 signal.append(names.get_name_string(id_pair[0][0]))
             signal.append(id_pair[1])
+
             signals_list.append(signal)
         return signals_list
 
@@ -826,7 +826,7 @@ class Gui(wx.Frame):
                 id = device.device_id
 
                 # D.Q
-                if (device.device_id, 12) in self.monitors.monitors_dictionary:
+                if (device.device_id, 13) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".Q")
                     device_list.append(
                         self.get_device_string(device.device_kind))
@@ -835,7 +835,7 @@ class Gui(wx.Frame):
                     device_list = []
 
                 # D.QBAR
-                if (device.device_id, 13) in self.monitors.monitors_dictionary:
+                if (device.device_id, 14) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".QBAR")
                     device_list.append(
                         self.get_device_string(device.device_kind))
@@ -859,11 +859,11 @@ class Gui(wx.Frame):
         monitored_devices = []
         for id_pair in self.monitors.monitors_dictionary.items():
             if id_pair[0][1]:
-                if id_pair[0][1] == 12:
+                if id_pair[0][1] == 13:
                     monitored_devices.append(
                         names.get_name_string(id_pair[0][0]) + ".Q"
                     )
-                elif id_pair[0][1] == 13:
+                elif id_pair[0][1] == 14:
                     monitored_devices.append(
                         names.get_name_string(id_pair[0][0]) + ".QBAR"
                     )
@@ -875,8 +875,8 @@ class Gui(wx.Frame):
     def get_device_string(self, device_index):
         """Return string device name matching with the number."""
         name = [self.translate("AND"), self.translate("OR"), self.translate("NAND"), self.translate("NOR"),
-                self.translate("XOR"), self.translate("CLOCK"), self.translate("SWITCH"), self.translate("DTYPE")]
-        if device_index in range(8):
+                self.translate("XOR"), self.translate("CLOCK"), self.translate("SWITCH"), self.translate("DTYPE"), self.translate("RC")]
+        if device_index in range(9):
             return name[device_index]
         else:
             return str(device_index)
