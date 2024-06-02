@@ -37,6 +37,8 @@ class Device:
         self.device_kind = None
         self.clock_half_period = None
         self.clock_counter = None
+        self.rc_time = None
+        self.rc_counter = None
         self.switch_state = None
         self.dtype_memory = None
 
@@ -103,7 +105,7 @@ class Devices:
         self.devices_list = []
 
         gate_strings = ["AND", "OR", "NAND", "NOR", "XOR"]
-        device_strings = ["CLOCK", "SWITCH", "DTYPE"]
+        device_strings = ["CLOCK", "SWITCH", "DTYPE", "RC"] #Addon
         dtype_inputs = ["CLK", "SET", "CLEAR", "DATA"]
         dtype_outputs = ["Q", "QBAR"]
 
@@ -115,12 +117,17 @@ class Devices:
                              self.FALLING, self.BLANK] = range(5)
         self.gate_types = [self.AND, self.OR, self.NAND, self.NOR,
                            self.XOR] = self.names.lookup(gate_strings)
-        self.device_types = [self.CLOCK, self.SWITCH,
-                             self.D_TYPE] = self.names.lookup(device_strings)
+        self.device_types = [
+            self.CLOCK,
+            self.SWITCH,
+            self.D_TYPE,
+            self.RC # Addon
+        ] = self.names.lookup(device_strings)
         self.dtype_input_ids = [self.CLK_ID, self.SET_ID, self.CLEAR_ID,
                                 self.DATA_ID] = self.names.lookup(dtype_inputs)
         self.dtype_output_ids = [
-            self.Q_ID, self.QBAR_ID] = self.names.lookup(dtype_outputs)
+            self.Q_ID, self.QBAR_ID
+        ] = self.names.lookup(dtype_outputs)
 
         self.max_gate_inputs = 16
 
@@ -228,6 +235,18 @@ class Devices:
         self.add_output(device_id, output_id=None)
         self.set_switch(device_id, initial_state)
 
+    def make_rc(self, device_id, rising_time):
+        """Make a RC device."""
+        self.add_device(device_id, self.RC)
+        device = self.get_device(device_id)
+        device.rc_time = rising_time
+        device.rc_counter = 1
+        self.add_output(
+            device_id,
+            output_id=None,
+            signal = self.HIGH
+        )
+
     def make_clock(self, device_id, clock_half_period):
         """Make a clock device with the specified half period.
 
@@ -305,6 +324,17 @@ class Devices:
                 self.make_clock(device_id, device_property)
                 error_type = self.NO_ERROR
 
+        elif device_kind == self.RC:
+            print(device_property)
+            # Device property is the number of clock cycles
+            if device_property is None:
+                error_type = self.NO_QUALIFIER
+            elif device_property <= 0:
+                error_type = self.INVALID_QUALIFIER
+            else:
+                self.make_rc( device_id, device_property )
+                error_type = self.NO_ERROR
+
         elif device_kind in self.gate_types:
             # Device property is the number of inputs
             if device_kind == self.XOR:
@@ -339,6 +369,8 @@ class Devices:
         device = self.get_device(device_id)
         if device.clock_half_period is not None:
             return device.clock_half_period
+        elif device.rc_time is not None:
+            return device.rc_time
         elif device.switch_state is not None:
             return device.switch_state
         elif device.dtype_memory is not None:

@@ -57,7 +57,7 @@ def main(arg_list):
                 path=path,
                 names_map=names,
                 devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
-                                   "OR", "NOR", "XOR", "DTYPE"]),
+                                   "OR", "NOR", "XOR", "DTYPE", "RC"]),
                 keywords_map=Names(
                     ["DEVICES", "CONNECTIONS", "MONITORS", "DATA",
                      "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
@@ -82,7 +82,7 @@ def main(arg_list):
                 path=path,
                 names_map=names,
                 devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
-                                   "OR", "NOR", "XOR", "DTYPE"]),
+                                   "OR", "NOR", "XOR", "DTYPE","RC"]),
                 keywords_map=Names(
                     ["DEVICES", "CONNECTIONS", "MONITORS", "DATA",
                      "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),

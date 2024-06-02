@@ -1,5 +1,4 @@
 import pytest
-import os
 
 from monitors import Monitors
 from network import Network

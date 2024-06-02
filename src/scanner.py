@@ -84,7 +84,8 @@ class Scanner:
             self.DEVICE, self.EOF, self.PUNCT] = [
                 "KEYWORD", "NAME",
                 "NUMBER", "DEVICE",
-                "EOF", "PUNCT"]
+                "EOF", "PUNCT"
+        ]
 
         self.current_line: int = 1
         self.checkpoint: int = 0
