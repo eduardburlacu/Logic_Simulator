@@ -214,6 +214,41 @@ class Network:
             device.outputs[None] = updated_signal
             return True
 
+    def execute_rc(self, device_id):
+        """
+        Simulate RC circuit and update its output signal value. If it is time to do so, set RC signals to LOW.
+        Return True if successful.
+        """
+        device = self.devices.get_device(device_id)
+        out = self.get_output_signal(device_id,None)  #device.outputs[None]
+
+        if out == self.devices.LOW:
+            output_signal = self.devices.LOW
+        elif out==self.devices.HIGH:
+            if device.rc_counter == device.rc_time:
+                output_signal = self.devices.LOW #self.update_signal(output_signal, self.devices.LOW)
+                #_________________________________________________
+                #device.outputs[None] = target
+                #return True
+            elif device.rc_counter < device.rc_time:
+                output_signal = self.devices.HIGH
+                device.rc_counter += 1
+            else:
+                return False
+        else:
+            return False
+
+        #signal = self.get_output_signal(device_id, None)
+        #target = output_signal
+        #updated_signal = self.update_signal(signal, target)
+
+        #if updated_signal is None:  # if the update is unsuccessful
+        #    return False
+        #elif updated_signal is self.devices.FALLING:
+        #    updated_signal = self.update_signal(updated_signal,target)
+        device.outputs[None] = output_signal#updated_signal
+        return True
+
     def execute_gate(self, device_id, x=None, y=None):
         """Simulate a logic gate and update its output signal value.
 
@@ -354,6 +389,7 @@ class Network:
         """
         clock_devices = self.devices.find_devices(self.devices.CLOCK)
         switch_devices = self.devices.find_devices(self.devices.SWITCH)
+        rc_devices = self.devices.find_devices(self.devices.RC)
         d_type_devices = self.devices.find_devices(self.devices.D_TYPE)
         and_devices = self.devices.find_devices(self.devices.AND)
         or_devices = self.devices.find_devices(self.devices.OR)
@@ -375,6 +411,9 @@ class Network:
 
             for device_id in switch_devices:  # execute switch devices
                 if not self.execute_switch(device_id):
+                    return False
+            for device_id in rc_devices: # execute RC devices
+                if not self.execute_rc(device_id):
                     return False
             # Execute D-type devices before clocks to catch the rising edge of
             # the clock

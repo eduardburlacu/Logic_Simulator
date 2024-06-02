@@ -18,9 +18,9 @@ labels: [Circuit Simulation, Python]
 
 ```bash
 # To run in a terminal GUI
-bash python src/logsim.py -c  (path_to_file)
+python src/logsim.py -c  (path_to_file)
 # To run in a WxPython GUI
-bash python src/logsim.py -c  (path_to_file)
+python src/logsim.py -c  (path_to_file)
 ```
 
 **Content:**
@@ -39,15 +39,15 @@ bash setup_env.sh
 
 ```bash
 # Run toy example 1
-bash python src/logsim.py doc/net_definition/circuit1.txt
+python src/logsim.py doc/net_definition/circuit1.txt
 ```
 
 ```bash
 # Run toy example 2
-bash python src/logsim.py doc/net_definition/circuit2.txt
+python src/logsim.py doc/net_definition/circuit2.txt
 ```
 
 ```bash
 # Run a bit adder with carry
-bash python src/logsim.py doc/net_definition/adder.txt
+python src/logsim.py doc/net_definition/adder.txt
 ```

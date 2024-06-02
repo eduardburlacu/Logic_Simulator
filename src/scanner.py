@@ -84,7 +84,8 @@ class Scanner:
             self.DEVICE, self.EOF, self.PUNCT] = [
                 "KEYWORD", "NAME",
                 "NUMBER", "DEVICE",
-                "EOF", "PUNCT"]
+                "EOF", "PUNCT"
+        ]
 
         self.current_line: int = 1
         self.checkpoint: int = 0
@@ -151,9 +152,16 @@ class Scanner:
         self.skip_spaces()  # current character now not whitespace
         if self.current_character == "#":
             # This is a 1-row comment. Ignore this line.
-            while (self.current_character != "\n"
-                   and self.current_character != ""):
+            while True:
                 self.current_character = self.get_next_character()
+                if self.current_character == "":
+                    break
+                elif self.current_character == "\n":
+                    self.current_character = self.get_next_character()
+                    self.skip_spaces()
+                    if self.current_character != "#": #Check for multiline comment
+                        break
+
             if self.current_character == "\n":
                 self.current_character = self.get_next_character()
                 self.skip_spaces()

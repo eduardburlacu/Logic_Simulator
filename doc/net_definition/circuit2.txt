@@ -10,5 +10,3 @@ CONNECTIONS:
 
 MONITORS:
 	A, B ;
-
-END

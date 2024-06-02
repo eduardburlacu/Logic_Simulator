@@ -300,7 +300,7 @@ class Parser:
         device type = ("CLOCK", parameter) | ("SWITCH", parameter) |
                       ("AND", parameter) | ("NAND", parameter) |
                       ("OR", parameter) | ("NOR", parameter) |
-                       "XOR" | "DTYPE" ;
+                       "XOR" | "DTYPE" | ("RC", parameter);
               parameter = "[", digit, {digit}, "]" ;
         """
         if self.symbol.type != self.scanner.DEVICE:
@@ -320,7 +320,7 @@ class Parser:
         parameter = None
 
         if device_type in {
-                "CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR"
+                "CLOCK", "SWITCH", "AND", "NAND", "OR", "NOR", "RC"
                 }:  # PARAMETER REQUIRED
 
             if self.decode() != "[":
@@ -357,7 +357,7 @@ class Parser:
                 self.error_handler.log_error("Sem", 10, 0)
                 self.scanner.print_line_error()
                 return False
-            elif device_type != "CLOCK" and parameter > 16:
+            elif device_type not in {"CLOCK", "RC" } and parameter > 16:
                 self.counter -= 1
                 self.devices_defined.popitem()
                 self.error_handler.log_error("Sem", 10, 0)
@@ -470,7 +470,7 @@ class Parser:
             return None
 
         #  Handle the case when the start word is not DEVICES
-        elif self.detect("DEVICES", self.scanner.KEYWORD) == False:
+        elif self.detect("DEVICES", self.scanner.KEYWORD) is False:
             #  Invalid Symbol?
             self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
@@ -835,7 +835,6 @@ class Parser:
                 return False
 
         self.monitors_defined.append((monitor, param))
-        # TODO code in whue is same as code before
         # Iterate over all possible monitor points(output ports of devices)
         while self.detect(",", self.scanner.PUNCT):
 
@@ -940,20 +939,18 @@ class Parser:
             else:
                 print(f"ERROR CODE ENCOUNTERED: {errorOut}")
 
-    # TODO: Range of inputs from I1 to I(n)
     def check_input_count(self):
         """Check whether the amount of inputs is correct."""
         # Check each input pin has been assigned:
         errorCount = 0
         for deviceToCheck in self.devices_defined:
-            # Unpack Edi's Funky Datastructure
             deviceType = self.device_types[
                 self.devices_defined[deviceToCheck]][0]
             numConnects = self.device_types[
                 self.devices_defined[deviceToCheck]][1]
 
-            # Exceptions for SWITCH and CLOCK; they cannot have inputs
-            if deviceType in ["SWITCH", "CLOCK"]:
+            # Exceptions for SWITCH, RC and CLOCK; they cannot have inputs
+            if deviceType in ["SWITCH", "CLOCK","RC"]:
                 continue
             # Count up number of connections
             conCount = 0
@@ -1019,6 +1016,5 @@ class Parser:
             self.create_devices()
             self.create_network()
             self.create_monitors()
-
         print("Total Error Count:", self.error_handler.get_error_count)
         return self.error_handler.get_error_count == 0
