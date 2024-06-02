@@ -1,0 +1,8 @@
+DEVICES:
+    rc1, rc3 = RC[4];
+    rc2, rc4 = RC[5];
+    rc5 = RC[8];
+CONNECTIONS:
+
+MONITORS:
+	rc1,rc2,rc3,rc4,rc5 ;

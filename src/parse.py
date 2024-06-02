@@ -470,7 +470,7 @@ class Parser:
             return None
 
         #  Handle the case when the start word is not DEVICES
-        elif self.detect("DEVICES", self.scanner.KEYWORD) == False:
+        elif self.detect("DEVICES", self.scanner.KEYWORD) is False:
             #  Invalid Symbol?
             self.error_handler.log_error("Syn", 6, 0)
             self.scanner.print_line_error()
@@ -835,7 +835,6 @@ class Parser:
                 return False
 
         self.monitors_defined.append((monitor, param))
-        # TODO code in whue is same as code before
         # Iterate over all possible monitor points(output ports of devices)
         while self.detect(",", self.scanner.PUNCT):
 
@@ -940,7 +939,6 @@ class Parser:
             else:
                 print(f"ERROR CODE ENCOUNTERED: {errorOut}")
 
-    # TODO: Range of inputs from I1 to I(n)
     def check_input_count(self):
         """Check whether the amount of inputs is correct."""
         # Check each input pin has been assigned:
