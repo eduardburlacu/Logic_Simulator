@@ -573,36 +573,37 @@ class Gui(wx.Frame):
                 self.locale.AddCatalogLookupPathPrefix("languages/chinese")
                 print(self.locale.AddCatalog("messages"))
             
-
         # Default to English if the user has not selected a valid language
         else:
             self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
 
+        self.translate = wx.GetTranslation
+
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, "&About")
-        fileMenu.Append(wx.ID_EXIT, "&Exit")
-        menuBar.Append(fileMenu, "&File")
+        fileMenu.Append(wx.ID_ABOUT, self.translate("&About"))
+        fileMenu.Append(wx.ID_EXIT, self.translate("&Exit"))
+        menuBar.Append(fileMenu, self.translate("&File"))
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas2D(self, devices, monitors)
 
         # Configure the widgets
-        self.textC = wx.StaticText(self, wx.ID_ANY, "Simulation Cycles")
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, "10")
-        self.run_button = wx.Button(self, wx.ID_ANY, "Run")
-        self.continue_button = wx.Button(self, wx.ID_ANY, "Continue")
-        self.textD = wx.StaticText(self, wx.ID_ANY, "Dimension")
-        self.textM = wx.StaticText(self, wx.ID_ANY, "Monitors")
+        self.textC = wx.StaticText(self, wx.ID_ANY, self.translate("Simulation Cycles"))
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, self.translate("10"))
+        self.run_button = wx.Button(self, wx.ID_ANY, self.translate("Run"))
+        self.continue_button = wx.Button(self, wx.ID_ANY, self.translate("Continue"))
+        self.textD = wx.StaticText(self, wx.ID_ANY, self.translate("Dimension"))
+        self.textM = wx.StaticText(self, wx.ID_ANY, self.translate("Monitors"))
         self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
-                                    + "Available" + 20*" " + "Current")
-        self.remove_button = wx.Button(self, wx.ID_ANY, "Remove")
-        self.add_button = wx.Button(self, wx.ID_ANY, "Add")
-        self.dimension_button = wx.Button(self, label='2D')
+                                    + self.translate("Available") + 20*" " + self.translate("Current"))
+        self.remove_button = wx.Button(self, wx.ID_ANY, self.translate("Remove"))
+        self.add_button = wx.Button(self, wx.ID_ANY, self.translate("Add"))
+        self.dimension_button = wx.Button(self, wx.ID_ANY, self.translate('2D'))
         
-        self.textS = wx.StaticText(self, wx.ID_ANY, "Switches")
+        self.textS = wx.StaticText(self, wx.ID_ANY, self.translate("Switches"))
 
         # Assign variable to the other modules
         self.names = names
@@ -632,8 +633,8 @@ class Gui(wx.Frame):
         # Create the list control for items with on/off states
         self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT
                                      | wx.LC_HRULES | wx.LC_VRULES)
-        self.list_ctrl.InsertColumn(0, 'Input', width=140)
-        self.list_ctrl.InsertColumn(1, 'State', width=60)
+        self.list_ctrl.InsertColumn(0, self.translate('Switch'), width=140)
+        self.list_ctrl.InsertColumn(1, self.translate('State'), width=60)
 
         # Add sample items to the list control
         device_list = self.devices_list
@@ -642,10 +643,10 @@ class Gui(wx.Frame):
             if device_list[i][1] == 'SWITCH':
                 if device_list[i][2] == 1:
                     index = self.list_ctrl.InsertItem(i, device_list[i][0])
-                    self.list_ctrl.SetItem(index, 1, 'On')
+                    self.list_ctrl.SetItem(index, 1, self.translate('On'))
                 else:
                     index = self.list_ctrl.InsertItem(i, device_list[i][0])
-                    self.list_ctrl.SetItem(index, 1, 'Off')
+                    self.list_ctrl.SetItem(index, 1, self.translate('Off'))
 
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
@@ -820,7 +821,7 @@ class Gui(wx.Frame):
         all_devices_list = []
         for device in devices.devices_list:
             # Unique condition for DTYPE
-            if self.get_device_string(device.device_kind) == ("DTYPE"):
+            if self.get_device_string(device.device_kind) == self.translate("DTYPE"):
                 device_list = []
                 id = device.device_id
 
@@ -873,8 +874,8 @@ class Gui(wx.Frame):
 
     def get_device_string(self, device_index):
         """Return string device name matching with the number."""
-        name = ["AND", "OR", "NAND", "NOR",
-                "XOR", "CLOCK", "SWITCH", "DTYPE"]
+        name = [self.translate("AND"), self.translate("OR"), self.translate("NAND"), self.translate("NOR"),
+                self.translate("XOR"), self.translate("CLOCK"), self.translate("SWITCH"), self.translate("DTYPE")]
         if device_index in range(8):
             return name[device_index]
         else:
@@ -892,7 +893,7 @@ class Gui(wx.Frame):
         """Handle the event when a list item is activated (double-clicked)."""
         index = event.GetIndex()
         current_state = self.list_ctrl.GetItem(index, 1).GetText()
-        new_state = 'On' if current_state == 'Off' else 'Off'
+        new_state = 'On' if current_state == ('Off') else 'Off'
         self.list_ctrl.SetItem(index, 1, new_state)
 
         # Update the state of the switch in the devices
