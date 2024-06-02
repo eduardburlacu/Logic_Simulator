@@ -183,7 +183,6 @@ class Network:
             return None
         if signal != new_signal:
             self.steady_state = False
-            print("UPDATED SIGNAL TO FALSE")
         return new_signal
 
     def invert_signal(self, signal):
@@ -222,7 +221,6 @@ class Network:
         """
         device = self.devices.get_device(device_id)
         out = self.get_output_signal(device_id,None)  #device.outputs[None]
-        print(f"Execute rc {device_id}, signal = {out}")
 
         if out == self.devices.LOW:
             output_signal = self.devices.LOW
@@ -288,7 +286,6 @@ class Network:
         signal = self.get_output_signal(device_id, None)
         target = output_signal
         updated_signal = self.update_signal(signal, target)
-        print(f"SIGNAL={signal} ,TARGET={target}, UPDATED={updated_signal}")
         if updated_signal is None:  # if the update is unsuccessful
             return False
         device.outputs[None] = updated_signal

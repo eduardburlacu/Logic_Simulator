@@ -108,7 +108,6 @@ class Monitors:
         """
         for device_id, output_id in self.monitors_dictionary:
             signal_level = self.get_monitor_signal(device_id, output_id)
-            #print(f"MONITOR SIGNAL ID={device_id} is {signal_level}")
             self.monitors_dictionary[(device_id,
                                       output_id)].append(signal_level)
 

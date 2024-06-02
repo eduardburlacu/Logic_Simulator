@@ -325,7 +325,6 @@ class Devices:
                 error_type = self.NO_ERROR
 
         elif device_kind == self.RC:
-            print(device_property)
             # Device property is the number of clock cycles
             if device_property is None:
                 error_type = self.NO_QUALIFIER
