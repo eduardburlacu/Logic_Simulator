@@ -1,0 +1,9 @@
+DEVICES:
+    rc2 = RC[4];
+    rc3 = RC[8];
+    xor = XOR;
+CONNECTIONS:
+    rc2 > xor.I1 ;
+    rc3 > xor.I2 ;
+MONITORS:
+	rc2, rc3, xor ;

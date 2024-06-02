@@ -64,6 +64,7 @@ class Network:
         """Initialise network errors and the steady_state variable."""
         self.names = names
         self.devices = devices
+        self.iterations = None
 
         [self.NO_ERROR, self.INPUT_TO_INPUT, self.OUTPUT_TO_OUTPUT,
          self.INPUT_CONNECTED, self.PORT_ABSENT,
@@ -224,8 +225,9 @@ class Network:
 
         if out == self.devices.LOW:
             output_signal = self.devices.LOW
-        elif out==self.devices.HIGH:
-            if device.rc_counter == device.rc_time:
+
+        elif out == self.devices.HIGH:
+            if device.rc_counter == device.rc_time: #The output is not steady
                 output_signal = self.devices.LOW #self.update_signal(output_signal, self.devices.LOW)
                 #_________________________________________________
                 #device.outputs[None] = target
@@ -237,17 +239,10 @@ class Network:
                 return False
         else:
             return False
-
-        #signal = self.get_output_signal(device_id, None)
-        #target = output_signal
-        #updated_signal = self.update_signal(signal, target)
-
-        #if updated_signal is None:  # if the update is unsuccessful
-        #    return False
-        #elif updated_signal is self.devices.FALLING:
-        #    updated_signal = self.update_signal(updated_signal,target)
-        device.outputs[None] = output_signal#updated_signal
-        return True
+        if self.iterations > 1:              #TODO If unsteady, run one more time
+            device.rc_counter -= 1           #TODO until the terminal settles down
+        device.outputs[None] = output_signal #TODO if the interpetation is "RUN" RC n iterations,
+        return True                          #TODO then just delete this if statement.
 
     def execute_gate(self, device_id, x=None, y=None):
         """Simulate a logic gate and update its output signal value.
@@ -404,9 +399,9 @@ class Network:
         # declaring the network unstable
         iteration_limit = 20
 
-        iterations = 0
-        while iterations < iteration_limit:
-            iterations += 1
+        self.iterations = 0
+        while self.iterations < iteration_limit:
+            self.iterations += 1
             self.steady_state = True
 
             for device_id in switch_devices:  # execute switch devices

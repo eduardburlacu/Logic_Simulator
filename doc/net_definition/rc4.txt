@@ -1,0 +1,9 @@
+DEVICES:
+    rc2 = RC[5];
+    rc3 = RC[8];
+    and = AND[2];
+CONNECTIONS:
+    rc2 > and.I1 ;
+    rc3 > and.I2 ;
+MONITORS:
+	rc2, rc3, and ;

@@ -1,0 +1,26 @@
+DEVICES:
+    A = OR[2] ;
+    B = NOR[3] ;
+    C = AND[3] ;
+    flipflop = DTYPE ;
+    rc_clear = RC[4];
+	rc_set = RC[9];
+    clock = CLOCK[05] ;
+    input1, input2 = SWITCH[0] ;
+    input3 = SWITCH[0] ;
+CONNECTIONS:
+	input1 > A.I1 ;
+	input1 > B.I1 ;
+	input2 > A.I2 ;
+	input2 > C.I2 ;
+	input2 > B.I2 ;
+	input3 > B.I3 ;
+	A > C.I1 ;
+	B > C.I3 ;
+	C > flipflop.DATA ;
+	clock > flipflop.CLK ;
+	rc_clear > flipflop.CLEAR ;
+	rc_set > flipflop.SET ;
+
+MONITORS:
+	rc_set, rc_clear, flipflop.Q ;
