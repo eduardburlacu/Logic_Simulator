@@ -221,7 +221,7 @@ class Network:
         Return True if successful.
         """
         device = self.devices.get_device(device_id)
-        out = self.get_output_signal(device_id,None)  #device.outputs[None]
+        out = self.get_output_signal(device_id, None)  #device.outputs[None]
 
         if out == self.devices.LOW:
             output_signal = self.devices.LOW
