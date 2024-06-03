@@ -948,3 +948,15 @@ class Gui(wx.Frame):
         
         # Show the new canvas
         self.canvas.Show()
+
+        self.monitors.reset_monitors()
+        # Restart devices
+        self.devices.cold_startup()
+        # Record signals for monitored devices
+        self.signals_list = self.get_signals_list(
+            self.names, self.spin.GetValue()
+        )
+        
+        # Render the canvas, set to running
+        self.canvas.render(self.signals_list)
+        self.running = True
