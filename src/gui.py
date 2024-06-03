@@ -648,6 +648,7 @@ class Gui(wx.Frame):
                     index = self.list_ctrl.InsertItem(i, device_list[i][0])
                     self.list_ctrl.SetItem(index, 1, self.translate('Off'))
 
+        self.num_cyc = 0
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
@@ -725,6 +726,7 @@ class Gui(wx.Frame):
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
         self.running = True
+        self.num_cyc = self.spin.GetValue()
 
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
@@ -735,6 +737,7 @@ class Gui(wx.Frame):
             self.names, self.spin.GetValue()
         )
         self.canvas.render(self.signals_list)
+        self.num_cyc += self.spin.GetValue()
 
     def on_add_button(self, event):
         """Handle the event when the user clicks the add button."""
@@ -954,7 +957,7 @@ class Gui(wx.Frame):
         self.devices.cold_startup()
         # Record signals for monitored devices
         self.signals_list = self.get_signals_list(
-            self.names, self.spin.GetValue()
+            self.names, self.num_cyc
         )
         
         # Render the canvas, set to running
