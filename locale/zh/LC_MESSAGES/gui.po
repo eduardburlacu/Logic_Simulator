@@ -1,0 +1,53 @@
+msgid "About"
+msgstr "关于"
+
+msgid "Exit"
+msgstr "退出"
+
+msgid "Simulation Cycles"
+msgstr "模拟周期"
+
+msgid "Run"
+msgstr "运行"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "Monitors"
+msgstr "监视器"
+
+msgid "Available"
+msgstr "可用"
+
+msgid "Current"
+msgstr "当前"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Dimension"
+msgstr "维度"
+
+msgid "Switches"
+msgstr "开关"
+
+msgid "Logic Simulator"
+msgstr "逻辑模拟器"
+
+msgid "Switch"
+msgstr "开关"
+
+msgid "State"
+msgstr "状态"
+
+msgid "On"
+msgstr "开启"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "2D"
+msgstr "二维"

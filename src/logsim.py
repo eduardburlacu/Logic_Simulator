@@ -24,7 +24,7 @@ from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
 from gui import Gui
-
+import builtins
 
 def main(arg_list):
     """Parse the command line options and arguments specified in arg_list.
@@ -96,12 +96,15 @@ def main(arg_list):
             lang_env = os.getenv('LANG', 'en_GB.utf8')
             lang_code = lang_env.split('_')[0]
             app = wx.App()
-            app.SetCLocale()
-            locale = wx.Locale(wx.LANGUAGE_SPANISH)
-            locale.AddCatalogLookupPathPrefix("es_es")
-            locale.AddCatalog("messages")
+
+            # Internationalisation
+            builtins._ = wx.GetTranslation
+            locale = wx.Locale()
+            locale.Init(wx.LANGUAGE_DEFAULT)
+            locale.AddCatalogLookupPathPrefix('./locale')
+            locale.AddCatalog('gui')
             gui = Gui("Logic Simulator", path, names, devices, network,
-                      monitors, lang_code)
+                      monitors)
             gui.Show(True)
             app.MainLoop()
 
