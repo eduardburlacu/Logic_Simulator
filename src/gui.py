@@ -550,60 +550,35 @@ class Gui(wx.Frame):
     on_text_box(self, event): Event handler for when the user enters text.
     """
 
-    def __init__(self, title, path, names, devices, network, monitors, language):
+    def __init__(self, title, path, names, devices, network, monitors):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(1200, 900))
-
-        # Define languages dictionary to map wx languages to directory names
-        self.lang_map = {
-            "es": (wx.LANGUAGE_SPANISH, "languages/spanish"),
-            "chi": (wx.LANGUAGE_CHINESE, "languages/chinese"),
-            
-        }
-        # Check if the user has selected a valid language, and if so, set it
-        userlang = self.lang_map.get(language)
-        if userlang:
-            
-            if userlang[1] == "languages/spanish":
-                self.locale = wx.Locale(wx.LANGUAGE_SPANISH)
-                self.locale.AddCatalogLookupPathPrefix("languages/spanish")
-                print(self.locale.AddCatalog("messages"))
-            elif userlang[1] == "languages/chinese":
-                self.locale = wx.Locale(wx.LANGUAGE_CHINESE)
-                self.locale.AddCatalogLookupPathPrefix("languages/chinese")
-                print(self.locale.AddCatalog("messages"))
-            
-        # Default to English if the user has not selected a valid language
-        else:
-            self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-
-        self.translate = wx.GetTranslation
 
         # Configure the file menu
         fileMenu = wx.Menu()
         menuBar = wx.MenuBar()
-        fileMenu.Append(wx.ID_ABOUT, self.translate("&About"))
-        fileMenu.Append(wx.ID_EXIT, self.translate("&Exit"))
-        menuBar.Append(fileMenu, self.translate("&File"))
+        fileMenu.Append(wx.ID_ABOUT, _(u"&About"))
+        fileMenu.Append(wx.ID_EXIT, _(u"&Exit"))
+        menuBar.Append(fileMenu, _(u"&File"))
         self.SetMenuBar(menuBar)
 
         # Canvas for drawing signals
         self.canvas = MyGLCanvas2D(self, devices, monitors)
 
         # Configure the widgets
-        self.textC = wx.StaticText(self, wx.ID_ANY, self.translate("Simulation Cycles"))
-        self.spin = wx.SpinCtrl(self, wx.ID_ANY, self.translate("10"))
-        self.run_button = wx.Button(self, wx.ID_ANY, self.translate("Run"))
-        self.continue_button = wx.Button(self, wx.ID_ANY, self.translate("Continue"))
-        self.textD = wx.StaticText(self, wx.ID_ANY, self.translate("Dimension"))
-        self.textM = wx.StaticText(self, wx.ID_ANY, self.translate("Monitors"))
+        self.textC = wx.StaticText(self, wx.ID_ANY, _(u"Simulation Cycles"))
+        self.spin = wx.SpinCtrl(self, wx.ID_ANY, _(u"10"))
+        self.run_button = wx.Button(self, wx.ID_ANY, _(u"Run"))
+        self.continue_button = wx.Button(self, wx.ID_ANY, _(u"Continue"))
+        self.textD = wx.StaticText(self, wx.ID_ANY, _(u"Dimension"))
+        self.textM = wx.StaticText(self, wx.ID_ANY, _(u"Monitors"))
         self.textMs = wx.StaticText(self, wx.ID_ANY, 13*" "
-                                    + self.translate("Available") + 20*" " + self.translate("Current"))
-        self.remove_button = wx.Button(self, wx.ID_ANY, self.translate("Remove"))
-        self.add_button = wx.Button(self, wx.ID_ANY, self.translate("Add"))
-        self.dimension_button = wx.Button(self, wx.ID_ANY, self.translate('2D'))
+                                    + _(u"Available") + 30*" " + _(u"Current"))
+        self.remove_button = wx.Button(self, wx.ID_ANY, _(u"Remove"))
+        self.add_button = wx.Button(self, wx.ID_ANY, _(u"Add"))
+        self.dimension_button = wx.Button(self, wx.ID_ANY, '2D')
         
-        self.textS = wx.StaticText(self, wx.ID_ANY, self.translate("Switches"))
+        self.textS = wx.StaticText(self, wx.ID_ANY, _(u"Switches"))
 
         # Assign variable to the other modules
         self.names = names
@@ -633,8 +608,8 @@ class Gui(wx.Frame):
         # Create the list control for items with on/off states
         self.list_ctrl = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT
                                      | wx.LC_HRULES | wx.LC_VRULES)
-        self.list_ctrl.InsertColumn(0, self.translate('Switch'), width=140)
-        self.list_ctrl.InsertColumn(1, self.translate('State'), width=60)
+        self.list_ctrl.InsertColumn(0, _(u'Switch'), width=140)
+        self.list_ctrl.InsertColumn(1, _(u'State'), width=60)
 
         # Add sample items to the list control
         device_list = self.devices_list
@@ -643,11 +618,12 @@ class Gui(wx.Frame):
             if device_list[i][1] == 'SWITCH':
                 if device_list[i][2] == 1:
                     index = self.list_ctrl.InsertItem(i, device_list[i][0])
-                    self.list_ctrl.SetItem(index, 1, self.translate('On'))
+                    self.list_ctrl.SetItem(index, 1, _(u'On'))
                 else:
                     index = self.list_ctrl.InsertItem(i, device_list[i][0])
-                    self.list_ctrl.SetItem(index, 1, self.translate('Off'))
+                    self.list_ctrl.SetItem(index, 1, _(u'Off'))
 
+        self.num_cyc = 0
         # Bind events to widgets
         self.Bind(wx.EVT_MENU, self.on_menu)
         self.spin.Bind(wx.EVT_SPINCTRL, self.on_spin)
@@ -717,15 +693,15 @@ class Gui(wx.Frame):
         self.monitors.reset_monitors()
         # Restart devices
         self.devices.cold_startup()
-
         # Record signals for monitored devices
         self.signals_list = self.get_signals_list(
             self.names, self.spin.GetValue()
         )
-
+        
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
         self.running = True
+        self.num_cyc = self.spin.GetValue()
 
     def on_continue_button(self, event):
         """Handle the event when the user clicks the continue button."""
@@ -736,6 +712,7 @@ class Gui(wx.Frame):
             self.names, self.spin.GetValue()
         )
         self.canvas.render(self.signals_list)
+        self.num_cyc += self.spin.GetValue()
 
     def on_add_button(self, event):
         """Handle the event when the user clicks the add button."""
@@ -749,9 +726,9 @@ class Gui(wx.Frame):
             output_id = None
             if len(selection.split(".")) == 2:
                 if selection.split(".")[1] == 'Q':
-                    output_id = 12
-                elif selection.split(".")[1] == 'QBAR':
                     output_id = 13
+                elif selection.split(".")[1] == 'QBAR':
+                    output_id = 14
             if device_id is not None:
                 self.monitors.make_monitor(device_id, output_id,
                                            self.spin.GetValue())
@@ -776,9 +753,9 @@ class Gui(wx.Frame):
             output_id = None
             if len(item.split(".")) == 2:
                 if item.split(".")[1] == 'Q':
-                    output_id = 12
-                elif item.split(".")[1] == 'QBAR':
                     output_id = 13
+                elif item.split(".")[1] == 'QBAR':
+                    output_id = 14
 
             if device_id is not None:
                 self.monitors.remove_monitor(device_id,
@@ -798,15 +775,16 @@ class Gui(wx.Frame):
         for id_pair in self.monitors.monitors_dictionary.items():
             signal = []
 
-            if id_pair[0][1] == 12:
+            if id_pair[0][1] == 13:
                 signal.append(names.get_name_string(id_pair[0][0]) + ".Q")
-            elif id_pair[0][1] == 13:
+            elif id_pair[0][1] == 14:
                 signal.append(
                     names.get_name_string(id_pair[0][0]) + ".QBAR"
                 )
             else:
                 signal.append(names.get_name_string(id_pair[0][0]))
             signal.append(id_pair[1])
+
             signals_list.append(signal)
         return signals_list
 
@@ -821,12 +799,12 @@ class Gui(wx.Frame):
         all_devices_list = []
         for device in devices.devices_list:
             # Unique condition for DTYPE
-            if self.get_device_string(device.device_kind) == self.translate("DTYPE"):
+            if self.get_device_string(device.device_kind) == "DTYPE":
                 device_list = []
                 id = device.device_id
 
                 # D.Q
-                if (device.device_id, 12) in self.monitors.monitors_dictionary:
+                if (device.device_id, 13) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".Q")
                     device_list.append(
                         self.get_device_string(device.device_kind))
@@ -835,7 +813,7 @@ class Gui(wx.Frame):
                     device_list = []
 
                 # D.QBAR
-                if (device.device_id, 13) in self.monitors.monitors_dictionary:
+                if (device.device_id, 14) in self.monitors.monitors_dictionary:
                     device_list.append(names.get_name_string(id) + ".QBAR")
                     device_list.append(
                         self.get_device_string(device.device_kind))
@@ -859,11 +837,11 @@ class Gui(wx.Frame):
         monitored_devices = []
         for id_pair in self.monitors.monitors_dictionary.items():
             if id_pair[0][1]:
-                if id_pair[0][1] == 12:
+                if id_pair[0][1] == 13:
                     monitored_devices.append(
                         names.get_name_string(id_pair[0][0]) + ".Q"
                     )
-                elif id_pair[0][1] == 13:
+                elif id_pair[0][1] == 14:
                     monitored_devices.append(
                         names.get_name_string(id_pair[0][0]) + ".QBAR"
                     )
@@ -874,9 +852,9 @@ class Gui(wx.Frame):
 
     def get_device_string(self, device_index):
         """Return string device name matching with the number."""
-        name = [self.translate("AND"), self.translate("OR"), self.translate("NAND"), self.translate("NOR"),
-                self.translate("XOR"), self.translate("CLOCK"), self.translate("SWITCH"), self.translate("DTYPE")]
-        if device_index in range(8):
+        name = ["AND", "OR", "NAND", "NOR",
+                "XOR", "CLOCK", "SWITCH", "DTYPE", "RC"]
+        if device_index in range(9):
             return name[device_index]
         else:
             return str(device_index)
@@ -893,7 +871,7 @@ class Gui(wx.Frame):
         """Handle the event when a list item is activated (double-clicked)."""
         index = event.GetIndex()
         current_state = self.list_ctrl.GetItem(index, 1).GetText()
-        new_state = 'On' if current_state == ('Off') else 'Off'
+        new_state = _(u'On') if current_state == _(u'Off') else _(u'Off')
         self.list_ctrl.SetItem(index, 1, new_state)
 
         # Update the state of the switch in the devices
@@ -948,3 +926,15 @@ class Gui(wx.Frame):
         
         # Show the new canvas
         self.canvas.Show()
+
+        self.monitors.reset_monitors()
+        # Restart devices
+        self.devices.cold_startup()
+        # Record signals for monitored devices
+        self.signals_list = self.get_signals_list(
+            self.names, self.num_cyc
+        )
+        
+        # Render the canvas, set to running
+        self.canvas.render(self.signals_list)
+        self.running = True

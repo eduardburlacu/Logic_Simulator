@@ -1,0 +1,47 @@
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Exit"
+msgstr "Salir"
+
+msgid "Simulation Cycles"
+msgstr "Ciclos de Simulación"
+
+msgid "Run"
+msgstr "Ejecutar"
+
+msgid "Continue"
+msgstr "Continuar"
+
+msgid "Monitors"
+msgstr "Monitores"
+
+msgid "Available"
+msgstr "Disponible"
+
+msgid "Current"
+msgstr "Actual"
+
+msgid "Remove"
+msgstr "Eliminar"
+
+msgid "Add"
+msgstr "Añadir"
+
+msgid "Change Dimension"
+msgstr "Cambiar Dimensión"
+
+msgid "Switches"
+msgstr "Interruptores"
+
+msgid "Switch"
+msgstr "Interruptor"
+
+msgid "State"
+msgstr "Estado"
+
+msgid "On"
+msgstr "Activar"
+
+msgid "Off"
+msgstr "Desactivar"
