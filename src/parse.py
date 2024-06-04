@@ -630,7 +630,7 @@ class Parser:
             self.scanner.print_line_error()
             return False
         elif self.symbol.type in {"CLOCK","RC","SWITCH"}:
-            #self.error_handler.log_error(,,)   #todo @Nikko add the exception here. Cannot decode a device without inputs, and the error in the next next if is too vague for that
+            self.error_handler.log_error("Sem", 2, 1)
             self.scanner.print_line_error()
 
         if not self.next_symbol():
