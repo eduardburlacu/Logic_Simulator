@@ -207,9 +207,10 @@ class Scanner:
                                         line, line_pos)
 
         else:
-            # not a valid character, raise error
+            # not a valid character, print error
             self.print_line_error()
-            raise SyntaxError(f"Character {self.current_character} not valid.")
+            with SyntaxError(f"Character {self.current_character} not valid.") as e:
+                print(e)
         self.symbols.append(symbol)
 
         return symbol

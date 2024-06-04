@@ -363,7 +363,7 @@ class Parser:
                 self.error_handler.log_error("Sem", 10, 0)
                 self.scanner.print_line_error()
                 return False
-            elif device_type == "CLOCK" and parameter == 0:
+            elif device_type in {"CLOCK", "RC"} and parameter == 0:
                 self.counter -= 1
                 self.devices_defined.popitem()
                 self.error_handler.log_error("Sem", 3, 0)
@@ -629,6 +629,9 @@ class Parser:
             self.error_handler.log_error("Sem", 8, 1)
             self.scanner.print_line_error()
             return False
+        elif self.symbol.type in {"CLOCK","RC","SWITCH"}:
+            #self.error_handler.log_error(,,)   #todo @Nikko add the exception here. Cannot decode a device without inputs, and the error in the next next if is too vague for that
+            self.scanner.print_line_error()
 
         if not self.next_symbol():
             self.error_handler.log_error("Syn", 5, 1)
