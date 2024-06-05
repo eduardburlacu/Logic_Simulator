@@ -54,5 +54,5 @@ python src/logsim.py ../doc/net_definition/adder.txt
 
 ```bash
 # Run def file rc3
-python src/logsim.py ../doc/net_definition/adder.txt
+python src/logsim.py ../doc/net_definition/rc3.txt
 ```
