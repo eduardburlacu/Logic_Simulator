@@ -9,7 +9,7 @@ def scanner():
     return Scanner(
         path=os.path.abspath(
             os.path.join(
-                os.path.dirname(__file__), "../..",
+                os.path.dirname(__file__), "..",
                 "doc", "net_definition", "circuit1.txt")),
         names_map=Names(),
         devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
@@ -24,7 +24,7 @@ def scanner():
 def scanner_fault():
     return Scanner(
         path=os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          "../..", "doc", "net_definition",
+                                          "..", "doc", "net_definition",
                                           "test_errors_circuit1.txt")),
         names_map=Names(),
         devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
