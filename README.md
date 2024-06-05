@@ -20,7 +20,7 @@ labels: [Circuit Simulation, Python]
 # To run in a terminal GUI
 python src/logsim.py -c  (path_to_file)
 # To run in a WxPython GUI
-python src/logsim.py -c  (path_to_file)
+python src/logsim.py (path_to_file)
 ```
 
 **Content:**
