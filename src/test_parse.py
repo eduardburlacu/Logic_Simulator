@@ -21,7 +21,7 @@ def parser():
                                           "..", "def_files", "nor.txt")),
         names_map=pNames,
         devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
-                           "OR", "NOR", "XOR", "DTYPE"]),
+                           "OR", "NOR", "XOR", "DTYPE", "RC"]),
         keywords_map=Names(["DEVICES", "CONNECTIONS", "MONITORS",
                             "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR", "I"]),
         punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
@@ -59,7 +59,7 @@ def parse_all_online():
             path,
             names_map=Names(),
             devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
-                               "CLK", "OR", "NOR", "XOR", "DTYPE"]),
+                               "CLK", "OR", "NOR", "XOR", "DTYPE", "RC"]),
             keywords_map=Names(["DEVICES", "CONNECTIONS", "MONITORS",
                                 "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
             punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])
@@ -99,7 +99,7 @@ def test_parse_all():
             path,
             names_map=Names(),
             devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
-                               "CLK", "OR", "NOR", "XOR", "DTYPE"]),
+                               "CLK", "OR", "NOR", "XOR", "DTYPE", "RC"]),
             keywords_map=Names(["DEVICES", "CONNECTIONS", "MONITORS",
                                 "DATA", "SET", "CLEAR", "Q", "QBAR", "I"]),
             punct_map=Names([",", ".", ":", ";", ">", "[", "]", "="])

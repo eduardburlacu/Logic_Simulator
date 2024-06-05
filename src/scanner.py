@@ -208,9 +208,10 @@ class Scanner:
 
         else:
             # not a valid character, print error
+            print(f"Character {self.current_character} not valid.")
             self.print_line_error()
-            with SyntaxError(f"Character {self.current_character} not valid.") as e:
-                print(e)
+            return None
+
         self.symbols.append(symbol)
 
         return symbol
@@ -235,6 +236,8 @@ class Scanner:
         self.file.seek(self.checkpoint)
         print("\n")
         print(self.file.readline()[:-1])
-        print(" " * (self.symbols[-1].line_position - self.checkpoint - 1)
-              + "^")
+        if self.current_line_position==1:
+            print("^")
+        else:
+            print(" " * (self.symbols[-1].line_position - self.checkpoint - 1) + "^")
         self.file.seek(temp)  # Go back to the error location
