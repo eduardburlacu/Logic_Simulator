@@ -18,7 +18,7 @@ def parser():
 
     scanner = Scanner(
         path=os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                          "../..", "def_files", "nor.txt")),
+                                          "..", "def_files", "nor.txt")),
         names_map=pNames,
         devices_map=Names(["CLOCK", "SWITCH", "AND", "NAND",
                            "OR", "NOR", "XOR", "DTYPE", "RC"]),
@@ -51,10 +51,10 @@ def parse_all_online():
             raise RuntimeError("TEST FILE NOT PROPERLY NAMED")
     outcomes = []
     for f in os.listdir(os.path.join(os.path.dirname(__file__),
-                                     "../..", "def_files")):
+                                     "..", "def_files")):
         # truth = claim(f[0])
         path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            "../..", "def_files", f))
+                                            "..", "def_files", f))
         scn = Scanner(
             path,
             names_map=Names(),
@@ -91,10 +91,10 @@ def test_parse_all():
             raise RuntimeError("TEST FILE NOT PROPERLY NAMED")
     outcomes = []
     for f in os.listdir(os.path.join(os.path.dirname(__file__),
-                                     "../..", "def_files")):
+                                     "..", "def_files")):
         # truth = claim(f[0])
         path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            "../..", "def_files", f))
+                                            "..", "def_files", f))
         scn = Scanner(
             path,
             names_map=Names(),
