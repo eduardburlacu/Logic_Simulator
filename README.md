@@ -38,16 +38,21 @@ bash setup_env.sh
 ## Usage Examples
 
 ```bash
-# Run toy example 1
-python src/logsim.py doc/net_definition/circuit1.txt
+# Run def file circtuit1
+python src/logsim.py ../doc/net_definition/circuit1.txt
 ```
 
 ```bash
-# Run toy example 2
-python src/logsim.py doc/net_definition/circuit2.txt
+# Run def file circtuit2
+python src/logsim.py ../doc/net_definition/circuit2.txt
 ```
 
 ```bash
-# Run a bit adder with carry
-python src/logsim.py doc/net_definition/adder.txt
+# Run def file adder with carry
+python src/logsim.py ../doc/net_definition/adder.txt
+```
+
+```bash
+# Run def file rc3
+python src/logsim.py ../doc/net_definition/adder.txt
 ```
