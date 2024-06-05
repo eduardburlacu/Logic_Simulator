@@ -125,12 +125,11 @@ class MyGLCanvas2D(wxcanvas.GLCanvas):
         for i in range(len(self.signals_list)):
             self.draw_signal(self.signals_list[i][1], self.colours[i % 3], i)
             self.render_text(self.signals_list[i][0], 10, 650 - 120 * i)
-            self.render_text("0", 80, 625 - 120 * i )
+            self.render_text("0", 80, 625 - 120 * i)
             self.render_text("1", 80, 675 - 120 * i)
-        
+
     def draw_axes(self, signal, position):
         """Draw axes for signals."""
-
         GL.glColor3f(0, 0, 0)
 
         for i in range(len(signal) + 1):
@@ -142,16 +141,21 @@ class MyGLCanvas2D(wxcanvas.GLCanvas):
             GL.glVertex2f(x, y_next)
             GL.glEnd()
             self.render_text(str(i), x - 5, y_next - 20)
-        
+
         GL.glBegin(GL.GL_LINES)
-        GL.glVertex2f(100, 630 - 10 - 120 * position)  # Start point of the x-axis
-        GL.glVertex2f(100 + len(signal) * 50, 630 - 10 - 120 * position)  # End point of the x-axis
+        # Start point of the x-axis
+        GL.glVertex2f(100, 630 - 10 - 120 * position)
+        # End point of the x-axis
+        GL.glVertex2f(100 + len(signal) * 50,
+                      630 - 10 - 120 * position)
         GL.glEnd()
 
         # Draw vertical y-axis line for each graph
         GL.glBegin(GL.GL_LINES)
-        GL.glVertex2f(100, 625 - 120 * position)  # Bottom point of the y-axis
-        GL.glVertex2f(100, 695 - 120 * position)  # Top point of the y-axis
+        # Bottom point of the y-axis
+        GL.glVertex2f(100, 625 - 120 * position)
+        # Top point of the y-axis
+        GL.glVertex2f(100, 695 - 120 * position)
         GL.glEnd()
 
     def render(self, signals_list):
@@ -243,6 +247,7 @@ class MyGLCanvas2D(wxcanvas.GLCanvas):
                 GL.glRasterPos2f(x_pos, y_pos)
             else:
                 GLUT.glutBitmapCharacter(font, ord(character))
+
 
 class MyGLCanvas3D(wxcanvas.GLCanvas):
     """Handle all drawing operations.
@@ -376,13 +381,15 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
         """Render all the signals and labels."""
         for s in range(len(self.signals_list)):
             for i in range(len(self.signals_list[s][1])):
-                GL.glColor3f(self.colours[s%3][0], self.colours[s%3][1], self.colours[s%3][2])
-                self.draw_cuboid(s*15, i*10, 3 , 4.5, self.signals_list[s][1][i] * 10 + 1)
+                GL.glColor3f(self.colours[s % 3][0],
+                             self.colours[s % 3][1], self.colours[s % 3][2])
+                self.draw_cuboid(s*15, i*10, 3, 4.5,
+                                 self.signals_list[s][1][i] * 10 + 1)
                 if s == 0:
                     GL.glColor3f(1.0, 1.0, 1.0)
                     self.render_text(str(i+1), 15 * s,  12,  i*10)
             GL.glColor3f(1.0, 1.0, 1.0)
-            self.render_text(self.signals_list[s][0], 15 * s,  12 , -10)
+            self.render_text(self.signals_list[s][0], 15 * s,  12, -10)
 
     def render(self, signals_list):
         """Handle all drawing operations."""
@@ -487,18 +494,6 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
             self.last_mouse_x = event.GetX()
             self.last_mouse_y = event.GetY()
             self.init = False
-        # if event.Dragging():
-        #     x = event.GetX() - self.last_mouse_x
-        #     y = event.GetY() - self.last_mouse_y
-
-        #     if event.LeftIsDown():  # Translate left/right and up/down
-        #         self.pan_x += x
-        #         self.pan_y -= y
-
-        #     self.last_mouse_x = event.GetX()
-        #     self.last_mouse_y = event.GetY()
-
-        #     self.init = False
 
         if event.GetWheelRotation() < 0:
             self.zoom *= (1.0 + (
@@ -526,6 +521,7 @@ class MyGLCanvas3D(wxcanvas.GLCanvas):
                 GLUT.glutBitmapCharacter(font, ord(character))
 
         GL.glEnable(GL.GL_LIGHTING)
+
 
 class Gui(wx.Frame):
     """Configure the main window and all the widgets.
@@ -577,7 +573,7 @@ class Gui(wx.Frame):
         self.remove_button = wx.Button(self, wx.ID_ANY, _(u"Remove"))
         self.add_button = wx.Button(self, wx.ID_ANY, _(u"Add"))
         self.dimension_button = wx.Button(self, wx.ID_ANY, '2D')
-        
+
         self.textS = wx.StaticText(self, wx.ID_ANY, _(u"Switches"))
 
         # Assign variable to the other modules
@@ -633,7 +629,6 @@ class Gui(wx.Frame):
         self.remove_button.Bind(wx.EVT_BUTTON, self.on_remove_button)
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                             self.on_list_item_activated)
-        
 
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -697,7 +692,7 @@ class Gui(wx.Frame):
         self.signals_list = self.get_signals_list(
             self.names, self.spin.GetValue()
         )
-        
+
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
         self.running = True
@@ -887,14 +882,14 @@ class Gui(wx.Frame):
         if not self.running:
             return
 
-
     def on_dimension_button(self, event):
+        """Switch Dimension of Canvas."""
         current_label = self.dimension_button.GetLabel()
         new_label = '3D' if current_label == '2D' else '2D'
         self.dimension_button.SetLabel(new_label)
         self.canvas.Hide()
         self.canvas.Destroy()
-        
+
         # Create and add the new canvas
         if new_label == '3D':
             self.canvas = MyGLCanvas3D(self, self.devices, self.monitors)
@@ -902,10 +897,10 @@ class Gui(wx.Frame):
         else:
             self.canvas = MyGLCanvas2D(self, self.devices, self.monitors)
             self.dimension_button.SetLabel('2D')
-        
+
         # Add the new canvas to the sizer and update the layout
         main_sizer = self.GetSizer()
-        
+
         side_sizer = None
         for idx in range(main_sizer.GetItemCount()):
             item = main_sizer.GetItem(idx)
@@ -916,14 +911,14 @@ class Gui(wx.Frame):
                 # Find and detach the side sizer
                 side_sizer = item.GetSizer()
                 main_sizer.Detach(side_sizer)
-        
+
         main_sizer.Add(self.canvas, 5, wx.EXPAND | wx.ALL, 5)
 
         if side_sizer is not None:
             main_sizer.Add(side_sizer, 1, wx.ALL, 5)
 
         main_sizer.Layout()
-        
+
         # Show the new canvas
         self.canvas.Show()
 
@@ -934,7 +929,7 @@ class Gui(wx.Frame):
         self.signals_list = self.get_signals_list(
             self.names, self.num_cyc
         )
-        
+
         # Render the canvas, set to running
         self.canvas.render(self.signals_list)
         self.running = True
