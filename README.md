@@ -35,6 +35,13 @@ python -m pip install --upgrade pip
 bash setup_env.sh
 ```
 
+## Language Setup
+
+```bash
+# Enter the following command in the terminal to change the language e.g. if the system language is Chinese, enter:
+LANG=zh_CN.utf8
+```
+
 ## Usage Examples
 
 ```bash
