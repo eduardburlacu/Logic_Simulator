@@ -1,0 +1,12 @@
+DEVICES:
+	A, B = NAND[2] ;
+	SW1, SW2 = SWITCH[0] ;
+
+CONNECTIONS:
+	SW1 > A.I1 ;
+	SW2 @ B.I2 ;
+	A > B.I1 ;
+	B > A.I2 ;
+
+MONITORS:
+	A, B ;
